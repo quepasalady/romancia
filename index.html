@@ -571,14 +571,15 @@ function enterPortfolio() {
   if (portfolioOpen) return;
   portfolioOpen = true;
 
-  // Sur tactile : s'assurer que le curseur custom est invisible
+  // Sur tactile : cacher curseur custom
   if (('ontouchstart' in window) || navigator.maxTouchPoints > 0) {
     var curEl = document.getElementById('cur');
     if (curEl) curEl.style.display = 'none';
   }
 
-  // 1. Hide play button
+  // 1. Cacher le bouton BIENVENUE définitivement
   playBtn.classList.add('hidden');
+  playBtn.style.display = 'none';
 
   // 2. After brief pause, move logo to top-left
   setTimeout(function() {
@@ -987,7 +988,16 @@ document.addEventListener('keydown', function(e) {
 
 (function() {
 
-  // ── 1. Vérification localStorage : intro déjà vue ? ──────────
+  // ── 1. Skip sur mobile/tactile : aller direct au site ──────────
+  var isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  if (isTouch) {
+    var introEl = document.getElementById('intro');
+    if (introEl) introEl.style.display = 'none';
+    document.body.classList.remove('intro-active');
+    return;
+  }
+
+  // ── 2. Vérification localStorage : intro déjà vue ? ──────────
   var INTRO_KEY = 'romancia_intro_seen_v1';
   var introDone = false;
 
@@ -995,26 +1005,23 @@ document.addEventListener('keydown', function(e) {
   if (localStorage.getItem(INTRO_KEY) === '1') {
     var introEl = document.getElementById('intro');
     if (introEl) introEl.style.display = 'none';
-    // Retirer intro-active pour que le site s'affiche normalement
     document.body.classList.remove('intro-active');
-    return; // On sort, rien à faire
+    return;
   }
 
-  // ── 2. Génération du tableau des 21 clips ─────────────────────
-  var clips = [];
-  for (var i = 1; i <= 21; i++) {
-    clips.push('videos/clip' + i + '.mp4');
-  }
-
-  // ── 3. Fisher-Yates shuffle ───────────────────────────────────
-  function shuffle(arr) {
-    var a = arr.slice(); // copie
+  // ── 3. Génération du tableau : 10 clips aléatoires parmi 21 ───
+  var allClips = [];
+  for (var i = 1; i <= 21; i++) { allClips.push('videos/clip' + i + '.mp4'); }
+  // Shuffle complet puis on prend les 10 premiers
+  function shuffleFull(arr) {
+    var a = arr.slice();
     for (var i = a.length - 1; i > 0; i--) {
       var j = Math.floor(Math.random() * (i + 1));
       var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
     }
     return a;
   }
+  var clips = shuffleFull(allClips).slice(0, 10);
 
   // ── 4. Utilitaires ────────────────────────────────────────────
 
@@ -1163,13 +1170,12 @@ document.addEventListener('keydown', function(e) {
 
   // ── 8. Séquence principale ────────────────────────────────────
   async function runIntro() {
-    var wrap      = document.getElementById('intro-video-wrap');
-    var shuffled  = shuffle(clips);
+    var wrap = document.getElementById('intro-video-wrap');
 
-    // Jouer chaque clip en séquence
-    for (var i = 0; i < shuffled.length; i++) {
-      if (introDone) break; // skip si déjà terminé
-      await playClip(shuffled[i], wrap);
+    // clips est déjà shuffled et réduit à 10 (≈ 1s)
+    for (var i = 0; i < clips.length; i++) {
+      if (introDone) break;
+      await playClip(clips[i], wrap);
     }
 
     // Fin : cut sec vers noir → fade vers le site
