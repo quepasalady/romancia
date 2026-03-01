@@ -16,6 +16,8 @@ html{width:100%;background:#000;}body{width:100%;background:#000;font-family:'He
   transition:transform .15s ease, opacity .2s;
 }
 #cur svg{width:100%;height:100%;}
+/* Cacher #cur quand lightbox ouvert */
+body.lb-open #cur { opacity:0 !important; pointer-events:none; }
 body.portfolio-mode #cur{
   width:7px;height:7px;
   background:#fff;border-radius:50%;
@@ -77,7 +79,7 @@ body:not(.portfolio-mode) #cur{
   z-index:200;
   padding:12px 4px;
 }
-#play-btn.hidden{opacity:0 !important;pointer-events:none;animation:none !important;transform:translate(-50%,90px) translateY(8px);}
+#play-btn.hidden{opacity:0 !important;pointer-events:none;animation:none !important;transform:translate(-50%,90px) translateY(8px);display:none !important;}
 #play-btn.glowing{animation:fadeIn 0s forwards, glowBreath 1.6s ease-in-out infinite;}
 #play-btn:hover{animation:none !important;opacity:.9 !important;text-shadow:0 0 20px rgba(255,255,255,0.9),0 0 50px rgba(255,255,255,0.5);}
 @keyframes glowBreath{
@@ -89,6 +91,7 @@ body,*{cursor:none !important;}
 @media (hover: none), (pointer: coarse) {
   body,*{cursor:auto !important;}
   #cur, #lb-cursor { display: none !important; }
+  #play-btn.hidden { display: none !important; }
 }
 
 /* ── PORTFOLIO LAYER ── */
@@ -139,9 +142,10 @@ body,*{cursor:none !important;}
   position:fixed;bottom:0;left:0;right:0;z-index:400;
   display:flex;align-items:center;justify-content:space-between;
   padding:28px 52px;pointer-events:none;
-  opacity:0;transition:opacity .6s ease;
+  opacity:0;transition:opacity .5s ease;
 }
-#footer.show{opacity:1;pointer-events:all;}
+#footer.show{pointer-events:all;}
+#footer.show.at-bottom{opacity:1;}
 .footer-copy{font-size:9px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.13);-webkit-font-smoothing:antialiased;}
 .footer-links{display:flex;gap:24px;}
 .footer-links a{font-size:9px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.13);text-decoration:none;transition:color .22s;-webkit-font-smoothing:antialiased;cursor:none;}
@@ -158,28 +162,65 @@ body,*{cursor:none !important;}
 #lightbox.open{opacity:1;pointer-events:all;background:rgba(0,0,0,0.96);}
 #lb-wrap{
   position:relative;
-  width:min(90vw,1100px);
+  width:min(68vw,860px);
   border-radius:4px;overflow:hidden;
   transform:scale(0.94);
   transition:transform .5s cubic-bezier(.34,1.1,.64,1);
 }
 #lightbox.open #lb-wrap{transform:scale(1);}
+
+/* Zone vidéo — curseur personnalisé actif ici */
+#lb-video-zone{position:relative;cursor:none;line-height:0;}
 #lb-video{width:100%;display:block;background:#000;min-height:260px;cursor:none;}
+
+/* Bouton X — fixe, positionné via JS dans la zone noire à droite */
+#lb-close{
+  position:fixed;
+  z-index:900;
+  width:28px;height:28px;border-radius:50%;
+  background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);
+  display:none;align-items:center;justify-content:center;
+  cursor:pointer;transition:background .2s, opacity .25s;
+  opacity:0;
+}
+#lb-close:hover{background:rgba(255,255,255,0.18);}
+body.lb-open #lb-close{display:flex;}
+#lightbox.open ~ #lb-close,
+body.lb-open #lb-close{ opacity:1; }
+
+/* Fullscreen — dans la barre de contrôle, à droite */
+#lb-right{display:flex;align-items:center;gap:10px;}
+#lb-fullscreen{
+  display:flex;align-items:center;justify-content:center;
+  width:22px;height:22px;cursor:pointer;opacity:0.5;
+  transition:opacity .2s;background:none;border:none;
+}
+#lb-fullscreen:hover{opacity:1;}
+#lb-controls{justify-content:space-between;}
+
 /* Bottom bar */
 #lb-bar{
   position:absolute;bottom:0;left:0;right:0;
-  padding:0 28px 22px;
+  padding:0 20px 18px;
   background:linear-gradient(transparent,rgba(0,0,0,0.85));
-  display:flex;flex-direction:column;gap:12px;
+  display:flex;flex-direction:column;gap:10px;
   opacity:0;transition:opacity .25s ease;
+  pointer-events:none;
 }
-#lightbox:hover #lb-bar{opacity:1;}
-/* Progress */
+#lb-bar.show-bar{opacity:1;pointer-events:all;}
+
+/* Timeline plus grande et facile à cliquer */
 #lb-progress-wrap{
-  width:100%;height:2px;background:rgba(255,255,255,0.15);
-  border-radius:2px;cursor:pointer;position:relative;
+  width:100%;height:18px;
+  display:flex;align-items:center;
+  cursor:pointer;position:relative;
 }
-#lb-progress{height:100%;background:#fff;border-radius:2px;width:0%;transition:width .1s linear;}
+#lb-progress-track{
+  width:100%;height:3px;background:rgba(255,255,255,0.18);
+  border-radius:3px;position:relative;overflow:hidden;
+}
+#lb-progress{height:100%;background:#fff;border-radius:3px;width:0%;transition:width .1s linear;}
+
 /* Bottom row */
 #lb-controls{
   display:flex;align-items:center;justify-content:space-between;
@@ -192,24 +233,49 @@ body,*{cursor:none !important;}
 #lb-vol{display:flex;align-items:center;gap:8px;}
 #lb-vol-slider{-webkit-appearance:none;appearance:none;width:60px;height:2px;background:rgba(255,255,255,0.25);border-radius:2px;outline:none;cursor:pointer;}
 #lb-vol-slider::-webkit-slider-thumb{-webkit-appearance:none;width:10px;height:10px;border-radius:50%;background:#fff;cursor:pointer;}
-#lb-close{
-  width:28px;height:28px;border-radius:50%;
-  background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.14);
-  display:flex;align-items:center;justify-content:center;
-  cursor:pointer;transition:background .2s;flex-shrink:0;
+
+/* Plein écran : garder la barre visible */
+#lb-video-zone:-webkit-full-screen { width:100vw; height:100vh; background:#000; cursor:none; }
+#lb-video-zone:-webkit-full-screen #lb-video { width:100%; height:100%; object-fit:contain; cursor:none; }
+#lb-video-zone:-webkit-full-screen #lb-bar { opacity:0; pointer-events:none; }
+#lb-video-zone:-webkit-full-screen:hover #lb-bar { opacity:1; pointer-events:all; }
+#lb-video-zone:fullscreen { width:100vw; height:100vh; background:#000; cursor:none; }
+#lb-video-zone:fullscreen #lb-video { width:100%; height:100%; object-fit:contain; cursor:none; }
+#lb-video-zone:fullscreen #lb-bar { opacity:0; pointer-events:none; }
+#lb-video-zone:fullscreen:hover #lb-bar { opacity:1; pointer-events:all; }
+
+/* ── Curseur lightbox ── */
+#lb-cursor {
+  position: fixed;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  transition: opacity 0.12s ease;
+  opacity: 0;
+  /* par défaut caché, actif seulement lb ouvert */
 }
-#lb-close:hover{background:rgba(255,255,255,0.18);}
-/* Custom cursor inside lightbox */
-#lb-cursor{
-  position:fixed;
-  z-index:9999;
-  pointer-events:none;
-  transform:translate(-50%,-50%);
-  transition:opacity .2s;
-  opacity:0;
+/* Point blanc — hors zone vidéo et sur timeline */
+#lb-cursor.mode-dot {
+  opacity: 1;
+  width: 7px;
+  height: 7px;
+  background: #fff;
+  border-radius: 50%;
 }
-#lb-cursor svg{display:block;}
-#lightbox.open #lb-cursor{opacity:1;}
+/* Icône pause/play — sur la zone vidéo active */
+#lb-cursor.mode-icon {
+  opacity: 1;
+  width: 44px;
+  height: 44px;
+  background: none;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#lb-cursor.mode-icon svg {
+  display: block;
+}
 
 /* CONTACT PAGE */
 #page-contact{position:fixed;inset:0;z-index:500;display:flex;flex-direction:column;background:#000;min-height:100vh;padding:130px 52px 80px;opacity:0;pointer-events:none;transform:translateY(20px);transition:opacity .5s ease,transform .5s ease;overflow-y:auto;}
@@ -238,118 +304,7 @@ body,*{cursor:none !important;}
 
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 
-/* ══════════════════════════════════════
-   INTRO CINÉMATIQUE — ROMANCIA
-   ══════════════════════════════════════ */
 
-/* Overlay principal de l'intro */
-#intro {
-  position: fixed;
-  inset: 0;
-  z-index: 10000;
-  background: #000;
-  overflow: hidden;
-}
-
-/* Conteneur vidéo de l'intro */
-#intro-video-wrap {
-  position: absolute;
-  inset: 0;
-}
-
-#intro-video-wrap video {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* Flash blanc ultra-court */
-#intro-flash {
-  position: absolute;
-  inset: 0;
-  background: #fff;
-  opacity: 0;
-  pointer-events: none;
-  z-index: 2;
-  transition: opacity 0s;
-}
-
-/* Grain cinéma overlay */
-#intro-grain {
-  position: absolute;
-  inset: 0;
-  z-index: 3;
-  pointer-events: none;
-  opacity: 0.18;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
-  background-size: 160px 160px;
-  mix-blend-mode: overlay;
-  animation: grainMove 0.08s steps(1) infinite;
-}
-@keyframes grainMove {
-  0%   { background-position: 0 0; }
-  10%  { background-position: -40px -20px; }
-  20%  { background-position: 30px 50px; }
-  30%  { background-position: -80px 10px; }
-  40%  { background-position: 60px -60px; }
-  50%  { background-position: -20px 80px; }
-  60%  { background-position: 100px 30px; }
-  70%  { background-position: -60px -40px; }
-  80%  { background-position: 20px 100px; }
-  90%  { background-position: -100px 60px; }
-  100% { background-position: 0 0; }
-}
-
-/* Vibration caméra CSS */
-@keyframes camShake {
-  0%   { transform: translate(0, 0) rotate(0deg); }
-  20%  { transform: translate(-1px, 1px) rotate(-0.2deg); }
-  40%  { transform: translate(1px, -1px) rotate(0.3deg); }
-  60%  { transform: translate(-2px, 0px) rotate(-0.1deg); }
-  80%  { transform: translate(1px, 2px) rotate(0.2deg); }
-  100% { transform: translate(0, 0) rotate(0deg); }
-}
-
-/* Glitch effect */
-@keyframes glitch {
-  0%   { clip-path: inset(40% 0 50% 0); transform: translate(-3px, 0); opacity: 0.8; }
-  25%  { clip-path: inset(10% 0 80% 0); transform: translate(3px, 0); opacity: 0.9; }
-  50%  { clip-path: inset(70% 0 10% 0); transform: translate(-2px, 1px); opacity: 0.7; }
-  75%  { clip-path: inset(20% 0 60% 0); transform: translate(2px, -1px); opacity: 1; }
-  100% { clip-path: inset(0% 0 0% 0); transform: translate(0, 0); opacity: 1; }
-}
-
-.glitch-active {
-  animation: glitch 0.06s steps(1) 1 !important;
-}
-
-.shake-active {
-  animation: camShake 0.08s ease 1 !important;
-}
-
-/* Bouton skip */
-#intro-skip {
-  position: absolute;
-  bottom: 32px;
-  right: 40px;
-  z-index: 10;
-  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-  font-size: 9px;
-  font-weight: 500;
-  letter-spacing: .26em;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.3);
-  background: none;
-  border: none;
-  cursor: pointer !important;
-  padding: 8px 0;
-  -webkit-font-smoothing: antialiased;
-  transition: color .2s;
-}
-#intro-skip:hover { color: rgba(255,255,255,0.7); }
 @media(max-width:780px){.contact-grid{grid-template-columns:1fr;gap:48px 0;}.contact-divider{display:none;}.form-row{grid-template-columns:1fr;}#page-contact{padding:120px 28px 60px;}#nav{padding:28px 28px;}#footer{padding:24px 28px;}}
 #mobile-list{display:none;}
 @media(max-width:768px){
@@ -367,45 +322,48 @@ body,*{cursor:none !important;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <script>emailjs.init('Xop27TPVb_2p3LWCH');</script>
+<script>
+// ── Spring letter bounce — générique ─────────────────────────────────
+function springLetters(el) {
+  var text = el.textContent.trim();
+  el.textContent = '';
+  var spans = text.split('').map(function(ch) {
+    var s = document.createElement('span');
+    s.textContent = ch;
+    s.style.cssText = 'display:inline-block;transition:transform 0.38s cubic-bezier(0.34,1.56,0.64,1);will-change:transform;';
+    el.appendChild(s);
+    return s;
+  });
+  el.addEventListener('mouseenter', function() {
+    var center = (spans.length - 1) / 2;
+    spans.forEach(function(s, i) {
+      var dist = i - center;
+      s.style.transitionDelay = Math.abs(dist) * 16 + 'ms';
+      s.style.transform = 'translateX(' + dist * 2.2 + 'px)';
+    });
+  });
+  el.addEventListener('mouseleave', function() {
+    var center = (spans.length - 1) / 2;
+    spans.forEach(function(s, i) {
+      s.style.transitionDelay = Math.abs(i - center) * 10 + 'ms';
+      s.style.transform = 'translateX(0)';
+    });
+  });
+}
+document.addEventListener('DOMContentLoaded', function() {
+  ['nav-films','nav-contact'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) springLetters(el);
+  });
+  document.querySelectorAll('.footer-links a').forEach(function(el) {
+    springLetters(el);
+  });
+  springLetters(document.getElementById('play-btn'));
+});
+</script>
 </head>
-<body style="height: 1530px;" class="intro-active">
+<body style="height: 1530px;">
 
-<!-- ═══════════════════════════════════════════════════
-     INTRO CINÉMATIQUE — ROMANCIA
-     Visible au chargement, disparaît après la séquence
-     ═══════════════════════════════════════════════════ -->
-<div id="intro">
-  <!-- Conteneur pour les <video> injectés dynamiquement -->
-  <div id="intro-video-wrap"></div>
-  <!-- Flash blanc entre les clips -->
-  <div id="intro-flash"></div>
-  <!-- Grain cinéma permanent -->
-  <div id="intro-grain"></div>
-  <!-- Bouton skip -->
-  <button id="intro-skip" onclick="skipIntro()">Passer ↓</button>
-</div>
-
-<style>
-/* ── Gèle les animations du site PENDANT l'intro ── */
-body.intro-active #logo,
-body.intro-active #play-btn {
-  animation: none !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-/* ── Relance proprement les animations APRÈS l'intro ── */
-body.intro-done #logo {
-  animation: fadeIn 1.2s ease-in-out 0.1s forwards !important;
-}
-body.intro-done #play-btn {
-  animation: fadeIn 1s ease-in-out 1.2s forwards !important;
-}
-/* ── Pendant l'intro, body height = 100vh (pas la hauteur canvas) ── */
-body.intro-active {
-  height: 100vh !important;
-  overflow: hidden !important;
-}
-</style>
 
 <!-- Cursor -->
 <div id="cur" style="left: 745px; top: 599px; transform: translate(-50%, -50%) scale(1); opacity: 1;">
@@ -435,7 +393,7 @@ body.intro-active {
 
 <!-- Footer -->
 <div id="footer">
-  <span class="footer-copy">© 2025 Romancia Production — Paris</span>
+  <span class="footer-copy">© 2026 Romancia Production — Paris</span>
   <div class="footer-links">
     <a href="https://www.instagram.com/romancia.prod/" target="_blank">Instagram</a>
     <a href="https://www.tiktok.com/@romanciaprod" target="_blank">TikTok</a>
@@ -443,32 +401,40 @@ body.intro-active {
 </div>
 
 <!-- Lightbox -->
-<div id="lb-cursor" style="left: 745px; top: 599px;">
-  <!-- swapped by JS -->
-  <svg id="lb-cur-play" width="44" height="44" viewBox="0 0 44 44" fill="none"><polygon points="13,9 37,22 13,35" stroke="white" stroke-width="1.4" stroke-linejoin="round" fill="none"></polygon></svg>
-  <svg id="lb-cur-pause" width="44" height="44" viewBox="0 0 44 44" fill="none" style="display:none"><rect x="13" y="10" width="5" height="24" rx="1.5" fill="none" stroke="white" stroke-width="1.4"></rect><rect x="26" y="10" width="5" height="24" rx="1.5" fill="none" stroke="white" stroke-width="1.4"></rect></svg>
+<div id="lb-cursor"></div>
+<!-- Bouton X flottant dans la zone noire, coin haut-droit de la vidéo -->
+<div id="lb-close" onclick="closeLB()">
+  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
 </div>
 <div id="lightbox">
   <div id="lb-wrap">
-    <video id="lb-video" playsinline=""></video>
-    <div id="lb-bar">
-      <div id="lb-progress-wrap" onclick="seekVideo(event)">
-        <div id="lb-progress"></div>
-      </div>
-      <div id="lb-controls">
-        <div id="lb-left">
-          <div id="lb-info">
-            <div id="lb-title"></div>
-            <div id="lb-year"></div>
-          </div>
-          <div id="lb-time">0:00 / 0:00</div>
-          <div id="lb-vol">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.8"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"></path></svg>
-            <input id="lb-vol-slider" type="range" min="0" max="1" step="0.02" value="1" oninput="setVol(this.value)">
+    <div id="lb-video-zone">
+      <video id="lb-video" playsinline=""></video>
+      <div id="lb-bar">
+        <div id="lb-progress-wrap">
+          <div id="lb-progress-track">
+            <div id="lb-progress"></div>
           </div>
         </div>
-        <div id="lb-close" onclick="closeLB()">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"></path></svg>
+        <div id="lb-controls">
+          <div id="lb-left">
+            <div id="lb-info">
+              <div id="lb-title"></div>
+              <div id="lb-year"></div>
+            </div>
+            <div id="lb-time">0:00 / 0:00</div>
+            <div id="lb-vol">
+              <span id="lb-vol-icon" onclick="toggleMute()" style="cursor:pointer;display:flex;align-items:center;">
+                <svg id="lb-vol-svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.8"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"></path></svg>
+              </span>
+              <input id="lb-vol-slider" type="range" min="0" max="1" step="0.02" value="1" oninput="setVol(this.value)">
+            </div>
+          </div>
+          <div id="lb-right">
+            <div id="lb-fullscreen" onclick="toggleFullscreen()" title="Plein écran">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -481,7 +447,7 @@ body.intro-active {
     <div class="contact-left">
       <h2>Travaillons<br>ensemble.</h2>
       <div class="info-block"><div class="info-label">Basé à</div><div class="info-value">Paris, France</div></div>
-      <div class="info-block"><div class="info-label">Email</div><div class="info-value"><a href="/cdn-cgi/l/email-protection#5725383a3639343e36792725383317303a363e3b7934383a"><span class="__cf_email__" data-cfemail="83f1eceee2ede0eae2adf3f1ece7c3e4eee2eaefade0ecee">[email&#160;protected]</span></a></div></div>
+      <div class="info-block"><div class="info-label">Email</div><div class="info-value"><span>[email&#160;protected]</span></div></div>
       <div class="info-block"><div class="info-label">Instagram</div><div class="info-value"><a href="https://www.instagram.com/romancia.prod/" target="_blank">@romancia.prod</a></div></div>
       <div class="info-block"><div class="info-label">TikTok</div><div class="info-value"><a href="https://www.tiktok.com/@romanciaprod" target="_blank">@romanciaprod</a></div></div>
       <div class="info-block"><div class="info-label">Disponibilité</div><div class="info-value">Ouverts aux projets<br>France &amp; International</div></div>
@@ -505,6 +471,38 @@ body.intro-active {
       </form>
     </div>
   </div>
+  <p style="margin-top:48px;font-size:11px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:rgba(255,255,255,0.28);text-align:center;-webkit-font-smoothing:antialiased;">
+    Website by <span id="eiimar-link" onclick="window.open('https://www.linkedin.com/in/nadir-messaoudi-361380234/','_blank')" style="font-weight:800;color:rgba(255,255,255,0.28);cursor:pointer;display:inline-flex;gap:0px;letter-spacing:.18em;" onmouseenter="eimarHover(true)" onmouseleave="eimarHover(false)"></span>
+  </p>
+  <script>
+  (function(){
+    var letters = 'EIIMAR'.split('');
+    var wrap = document.getElementById('eiimar-link');
+    letters.forEach(function(l, i) {
+      var s = document.createElement('span');
+      s.textContent = l;
+      s.style.cssText = 'display:inline-block;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),color 0.2s;will-change:transform;';
+      s.dataset.i = i;
+      wrap.appendChild(s);
+    });
+    var spans = wrap.querySelectorAll('span');
+    var hovered = false;
+    window.eimarHover = function(on) {
+      hovered = on;
+      spans.forEach(function(s, i) {
+        var center = (spans.length - 1) / 2;
+        var dist   = i - center;
+        // Spread léger sur X seulement, les lettres du bord ne dépassent pas vers "BY"
+        // On limite le spread max à 2.5px par lettre côté gauche (vers BY)
+        var spread = on ? dist * 2.5 : 0;
+        var delay  = on ? Math.abs(dist) * 18 : Math.abs(dist) * 10;
+        s.style.transitionDelay = delay + 'ms';
+        s.style.transform       = on ? 'translateX(' + spread + 'px)' : 'translateX(0)';
+        s.style.color           = on ? 'rgba(255,255,255,0.75)' : 'rgba(255,255,255,0.28)';
+      });
+    };
+  })();
+  </script>
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
@@ -577,6 +575,9 @@ function enterPortfolio() {
     if (curEl) curEl.style.display = 'none';
   }
 
+  // Charger les vidéos maintenant qu'on entre dans le portfolio
+  loadAllVideos();
+
   // 1. Cacher le bouton BIENVENUE définitivement
   playBtn.classList.add('hidden');
   playBtn.style.display = 'none';
@@ -595,8 +596,19 @@ function enterPortfolio() {
     // Show nav & footer
     document.getElementById('nav').classList.add('show');
     document.getElementById('footer').classList.add('show');
+    // Vérif initiale position scroll
+    checkFooterBottom();
   }, 500);
 }
+
+// Footer visible seulement tout en bas
+function checkFooterBottom() {
+  var footer = document.getElementById('footer');
+  if (!footer || !footer.classList.contains('show')) return;
+  var atBottom = (window.scrollY + window.innerHeight >= document.body.scrollHeight - 40);
+  footer.classList.toggle('at-bottom', atBottom);
+}
+window.addEventListener('scroll', checkFooterBottom, {passive:true});
 
 // ── Page nav ──
 function showPage(p) {
@@ -604,8 +616,12 @@ function showPage(p) {
   document.getElementById('nav-contact').classList.toggle('active', p === 'contact');
   document.getElementById('page-contact').classList.toggle('show',  p === 'contact');
   contactOpen = (p === 'contact');
-  // Freeze body scroll when contact open (it has its own scroll)
   document.body.style.overflow = contactOpen ? 'hidden' : '';
+  // Sur contact : forcer le curseur en point blanc, jamais triangle
+  if (contactOpen) {
+    document.body.classList.add('portfolio-mode');
+    cur.querySelector('svg').style.display = 'none';
+  }
 }
 
 // ── Canvas ──
@@ -615,14 +631,24 @@ var tip       = document.getElementById('tooltip'); // unused
 var bubblesVisible = false;
 var globalAlphaBubbles = 0; // fade in bubbles progressively
 
+// vidEls créés mais PAS chargés au démarrage → évite le lag initial
 var vidEls = FILMS.map(function(f) {
   if (!f.video) return null;
   var v = document.createElement('video');
-  v.src = f.video; v.muted = true; v.loop = true; v.playsInline = true;
-  v.preload = 'auto';
-  v.play().then(function(){ setTimeout(function(){ if(!v._previewing) v.pause(); }, 800); }).catch(function(){});
+  v.muted = true; v.loop = true; v.playsInline = true;
+  v.preload = 'none'; // on ne charge rien au départ
+  // Le src sera assigné quand le portfolio s'ouvre
+  v._src = f.video;
   return v;
 });
+
+function loadAllVideos() {
+  vidEls.forEach(function(v) {
+    if (!v || v.src) return; // déjà chargé
+    v.src = v._src;
+    v.preload = 'auto';
+  });
+}
 
 function resize() {
   W = window.innerWidth;
@@ -686,6 +712,7 @@ function draw(t) {
   if (bubblesVisible && globalAlphaBubbles < 1) {
     globalAlphaBubbles = Math.min(1, globalAlphaBubbles + 0.018);
   }
+  if (!bubblesVisible && globalAlphaBubbles <= 0) return;
   if (globalAlphaBubbles <= 0) return;
   if (contactOpen) return;
 
@@ -697,8 +724,17 @@ function draw(t) {
     var dist = Math.sqrt(dx*dx + dy*dy);
     if (dist < closestDist) { closestDist = dist; closestIdx = i; }
   }
-  var threshold = (bubbles[0] ? bubbles[0].hw * 3 : 300);
-  hoveredIdx = (closestDist < threshold) ? closestIdx : -1;
+  // Threshold = curseur doit être À L'INTÉRIEUR de la carte (hw+hh)
+  // On vérifie aussi que le curseur est bien dans les bounds X ET Y de la bulle la plus proche
+  hoveredIdx = -1;
+  if (closestIdx >= 0) {
+    var bc  = bubbles[closestIdx];
+    var rw2 = bc.thw || bc.hw;
+    var rh2 = bc.thh || bc.hh;
+    if (Math.abs(bc.x - mx) < rw2 && Math.abs(bc.y - my) < rh2) {
+      hoveredIdx = closestIdx;
+    }
+  }
 
   // Physics
   for (var i = 0; i < bubbles.length; i++) {
@@ -890,45 +926,143 @@ canvas.addEventListener('click', function(e) {
   }
 });
 
-// Lightbox
-var lbCursor = document.getElementById('lb-cursor');
-var lbCurPlay  = document.getElementById('lb-cur-play');
-var lbCurPause = document.getElementById('lb-cur-pause');
-var lbPaused = false;
+// ── Lightbox ──────────────────────────────────────────────────────────
+var lbCursor  = document.getElementById('lb-cursor');
+var lbPaused  = false;
+var lbVideoZone = document.getElementById('lb-video-zone');
+var lbBar     = document.getElementById('lb-bar');
 
-// Move custom cursor inside lightbox
+// ══════════════════════════════════════════════════
+// CURSEUR LIGHTBOX — une seule div, deux modes
+// mode-dot  : point blanc (partout sauf vidéo active)
+// mode-icon : icône pause ou play (zone vidéo seulement)
+// ══════════════════════════════════════════════════
+var lbProgressWrap = document.getElementById('lb-progress-wrap');
+var lbIsPlaying    = false;
+var lbIsOpen       = false;
+
+// Les deux SVG comme strings — injectés dans la div selon besoin
+var LB_SVG = {
+  pause: '<svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="10" y="8" width="5" height="22" rx="1.5" fill="white"/><rect x="23" y="8" width="5" height="22" rx="1.5" fill="white"/></svg>',
+  play:  '<svg width="38" height="38" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg"><polygon points="11,7 33,19 11,31" fill="white"/></svg>'
+};
+
+// ── Détermine le mode curseur selon position souris ──────────────
+function getLBCursorMode(clientX, clientY) {
+  if (!lbIsOpen) return 'hidden';
+  var lbv = document.getElementById('lb-video');
+  var vRect = lbv.getBoundingClientRect();
+
+  var vw = vRect.width, vh = vRect.height;
+  var inVideoBox = (
+    clientX >= vRect.left && clientX <= vRect.right &&
+    clientY >= vRect.top  && clientY <= vRect.bottom
+  );
+  if (!inVideoBox) return 'dot';
+
+  // 5% bords gauche/droite, 5% haut, 22% bas (timeline)
+  var onLeft     = clientX <= vRect.left   + vw * 0.05;
+  var onRight    = clientX >= vRect.right  - vw * 0.05;
+  var onTop      = clientY <= vRect.top    + vh * 0.05;
+  var onTimeline = clientY >= vRect.bottom - vh * 0.22;
+
+  if (onLeft || onRight || onTop || onTimeline) return 'dot';
+  return 'icon';
+}
+
+// ── Applique le mode au curseur ────────────────────────────────────
+function applyLBCursorMode(mode) {
+  // Retirer tous les modes précédents
+  lbCursor.classList.remove('mode-dot', 'mode-icon');
+  if (mode === 'hidden') {
+    // rien
+  } else if (mode === 'dot') {
+    lbCursor.innerHTML = '';
+    lbCursor.classList.add('mode-dot');
+  } else if (mode === 'icon') {
+    lbCursor.innerHTML = lbIsPlaying ? LB_SVG.pause : LB_SVG.play;
+    lbCursor.classList.add('mode-icon');
+  }
+}
+
+// ── MouseMove : position + mode ────────────────────────────────────
 document.addEventListener('mousemove', function(e) {
+  if (!lbIsOpen) return;
   lbCursor.style.left = e.clientX + 'px';
   lbCursor.style.top  = e.clientY + 'px';
+
+  // En plein écran, la zone vidéo = tout l'écran
+  var isFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  var vRect;
+  if (isFS) {
+    vRect = { left:0, top:0, right:window.innerWidth, bottom:window.innerHeight,
+              width:window.innerWidth, height:window.innerHeight };
+  } else {
+    vRect = document.getElementById('lb-video').getBoundingClientRect();
+  }
+
+  // Recalculer le mode avec le bon vRect
+  var cx = e.clientX, cy = e.clientY;
+  var vw = vRect.right - vRect.left, vh = vRect.bottom - vRect.top;
+  var inVideoBox = cx >= vRect.left && cx <= vRect.right && cy >= vRect.top && cy <= vRect.bottom;
+
+  var mode;
+  if (!inVideoBox) {
+    mode = 'dot';
+  } else {
+    var onLeft     = cx <= vRect.left   + vw * 0.05;
+    var onRight    = cx >= vRect.right  - vw * 0.05;
+    var onTop      = cy <= vRect.top    + vh * 0.05;
+    var onTimeline = cy >= vRect.bottom - vh * 0.22;
+    mode = (onLeft || onRight || onTop || onTimeline) ? 'dot' : 'icon';
+  }
+
+  applyLBCursorMode(mode);
+
+  var bRect = lbBar.getBoundingClientRect();
+  var onBar = cx >= bRect.left && cx <= bRect.right && cy >= bRect.top && cy <= bRect.bottom + 10;
+  if (mode === 'icon' || onBar) lbBar.classList.add('show-bar');
+  else                          lbBar.classList.remove('show-bar');
 });
 
+// ── setLBCursor : appelé par onplay/onpause ─────────────────────────
 function setLBCursor(playing) {
-  lbCurPlay.style.display  = playing ? 'none'  : 'block';
-  lbCurPause.style.display = playing ? 'block' : 'none';
+  lbIsPlaying = playing;
+  // Si on est en mode icon, mettre à jour l'icône IMMEDIATEMENT
+  // On vide d'abord pour éviter toute superposition
+  if (lbCursor.classList.contains('mode-icon')) {
+    lbCursor.innerHTML = '';
+    lbCursor.innerHTML = playing ? LB_SVG.pause : LB_SVG.play;
+  }
 }
 
 function openLB(idx) {
-  var f = FILMS[idx];
+  var f   = FILMS[idx];
+  var lbv = document.getElementById('lb-video');
   document.getElementById('lb-title').textContent = f.title;
   document.getElementById('lb-year').textContent  = f.cat + ' — ' + f.year;
-  var lbv = document.getElementById('lb-video');
   if (f.video) {
     lbv.src = f.video;
     lbv.play().catch(function(){});
     lbPaused = false;
-    setLBCursor(true);
+    setLBCursor(true); // vidéo qui tourne → logo pause
   } else {
-    lbv.src = '';
-    lbPaused = true;
-    setLBCursor(false);
+    lbv.src = ''; lbPaused = true; setLBCursor(false);
   }
   document.getElementById('lightbox').classList.add('open');
-
-  // Progress bar update
+  document.body.classList.add('lb-open');
+  lbIsOpen = true;
+  applyLBCursorMode('dot');
+  // X : coin haut-droit de l'écran, là où est le point blanc quand lb ouvert
+  requestAnimationFrame(function() {
+    var close = document.getElementById('lb-close');
+    close.style.top   = '20px';
+    close.style.right = '20px';
+    close.style.left  = 'auto';
+  });
   lbv.ontimeupdate = function() {
     if (!lbv.duration) return;
-    var pct = (lbv.currentTime / lbv.duration) * 100;
-    document.getElementById('lb-progress').style.width = pct + '%';
+    document.getElementById('lb-progress').style.width = (lbv.currentTime / lbv.duration * 100) + '%';
     document.getElementById('lb-time').textContent = fmtTime(lbv.currentTime) + ' / ' + fmtTime(lbv.duration);
   };
   lbv.onplay  = function() { lbPaused = false; setLBCursor(true); };
@@ -941,36 +1075,85 @@ function closeLB() {
   document.getElementById('lightbox').classList.remove('open');
   document.getElementById('lb-progress').style.width = '0%';
   document.getElementById('lb-time').textContent = '0:00 / 0:00';
+  lbIsOpen = false;
+  document.body.classList.remove('lb-open');
+  lbCursor.classList.remove('mode-dot', 'mode-icon');
+  lbCursor.innerHTML = '';
+  lbBar.classList.remove('show-bar');
+  // Quitter le plein écran si actif
+  try { if (document.fullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch(e){}
+}
+
+function toggleFullscreen() {
+  var zone = document.getElementById('lb-video-zone');
+  if (!document.fullscreenElement) {
+    (zone.requestFullscreen || zone.webkitRequestFullscreen).call(zone);
+  } else {
+    (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+  }
 }
 
 function seekVideo(e) {
-  var lbv = document.getElementById('lb-video');
+  var lbv  = document.getElementById('lb-video');
   if (!lbv.duration) return;
-  var rect = e.currentTarget.getBoundingClientRect();
-  var pct  = (e.clientX - rect.left) / rect.width;
+  var track = document.getElementById('lb-progress-track');
+  var rect  = track.getBoundingClientRect();
+  var pct   = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
   lbv.currentTime = pct * lbv.duration;
 }
 
+// Click sur la timeline
+document.getElementById('lb-progress-wrap').addEventListener('click', seekVideo);
+
+// Drag sur la timeline
+var lbDragging = false;
+document.getElementById('lb-progress-wrap').addEventListener('mousedown', function(e) {
+  lbDragging = true; seekVideo(e);
+});
+document.addEventListener('mousemove', function(e) {
+  if (lbDragging) seekVideo(e);
+});
+document.addEventListener('mouseup', function() { lbDragging = false; });
+
 function setVol(v) {
-  document.getElementById('lb-video').volume = v;
+  var lbv = document.getElementById('lb-video');
+  lbv.volume = v;
+  lbv.muted  = (v == 0);
+  updateVolIcon();
+}
+
+function toggleMute() {
+  var lbv = document.getElementById('lb-video');
+  lbv.muted = !lbv.muted;
+  var slider = document.getElementById('lb-vol-slider');
+  slider.value = lbv.muted ? 0 : (lbv.volume || 1);
+  updateVolIcon();
+}
+
+function updateVolIcon() {
+  var lbv = document.getElementById('lb-video');
+  var svg = document.getElementById('lb-vol-svg');
+  if (!svg) return;
+  var muted = lbv.muted || lbv.volume === 0;
+  svg.style.opacity = muted ? '0.25' : '0.6';
+  svg.style.stroke  = muted ? 'rgba(255,80,80,0.7)' : 'rgba(255,255,255,0.5)';
 }
 
 function fmtTime(s) {
-  var m = Math.floor(s/60);
-  var ss = Math.floor(s%60);
+  var m = Math.floor(s/60), ss = Math.floor(s%60);
   return m + ':' + (ss < 10 ? '0' : '') + ss;
 }
 
-// Click video = toggle play/pause
+// Click vidéo = toggle play/pause
 document.getElementById('lb-video').addEventListener('click', function() {
-  var lbv = this;
-  if (lbv.paused) { lbv.play(); } else { lbv.pause(); }
+  if (this.paused) this.play(); else this.pause();
 });
 
 // Click outside = close
 document.getElementById('lightbox').addEventListener('click', function(e) {
-  if (e.target === document.getElementById('lightbox')) closeLB();
+  if (e.target === this) closeLB();
 });
+
 document.addEventListener('keydown', function(e) {
   if (e.key === 'Escape') closeLB();
   if (e.key === ' ' && document.getElementById('lightbox').classList.contains('open')) {
@@ -979,219 +1162,6 @@ document.addEventListener('keydown', function(e) {
     if (lbv.paused) lbv.play(); else lbv.pause();
   }
 });
-
-// ═══════════════════════════════════════════════════════════════
-//  INTRO CINÉMATIQUE — ROMANCIA
-//  Montage ultra-dynamique : 21 clips × 0.1 seconde chacun
-//  Durée totale ≈ 2–3 secondes (variable selon le chargement)
-// ═══════════════════════════════════════════════════════════════
-
-(function() {
-
-  // ── 1. Skip sur mobile/tactile : aller direct au site ──────────
-  var isTouch = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
-  if (isTouch) {
-    var introEl = document.getElementById('intro');
-    if (introEl) introEl.style.display = 'none';
-    document.body.classList.remove('intro-active');
-    return;
-  }
-
-  // ── 2. Vérification localStorage : intro déjà vue ? ──────────
-  var INTRO_KEY = 'romancia_intro_seen_v1';
-  var introDone = false;
-
-  // Si l'intro a déjà été jouée, on la cache immédiatement
-  if (localStorage.getItem(INTRO_KEY) === '1') {
-    var introEl = document.getElementById('intro');
-    if (introEl) introEl.style.display = 'none';
-    document.body.classList.remove('intro-active');
-    return;
-  }
-
-  // ── 3. Génération du tableau : 10 clips aléatoires parmi 21 ───
-  var allClips = [];
-  for (var i = 1; i <= 21; i++) { allClips.push('videos/clip' + i + '.mp4'); }
-  // Shuffle complet puis on prend les 10 premiers
-  function shuffleFull(arr) {
-    var a = arr.slice();
-    for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(Math.random() * (i + 1));
-      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
-    }
-    return a;
-  }
-  var clips = shuffleFull(allClips).slice(0, 10);
-
-  // ── 4. Utilitaires ────────────────────────────────────────────
-
-  // Promesse qui résout quand loadedmetadata est déclenché
-  function waitForMeta(video) {
-    return new Promise(function(resolve, reject) {
-      if (video.readyState >= 1) { resolve(); return; }
-      var timeout = setTimeout(function() { resolve(); }, 1500); // timeout de sécurité 1.5s
-      video.addEventListener('loadedmetadata', function handler() {
-        clearTimeout(timeout);
-        video.removeEventListener('loadedmetadata', handler);
-        resolve();
-      });
-      video.addEventListener('error', function errHandler() {
-        clearTimeout(timeout);
-        video.removeEventListener('error', errHandler);
-        resolve(); // on continue même en cas d'erreur
-      });
-    });
-  }
-
-  // Attendre n millisecondes
-  function wait(ms) {
-    return new Promise(function(resolve) { setTimeout(resolve, ms); });
-  }
-
-  // Flash blanc ultra-court (durée aléatoire 20–60ms)
-  function triggerFlash() {
-    var flash = document.getElementById('intro-flash');
-    if (!flash) return;
-    var dur = 20 + Math.random() * 40; // 20–60ms
-    flash.style.transition = 'none';
-    flash.style.opacity    = '1';
-    setTimeout(function() {
-      flash.style.transition = 'opacity ' + (dur * 0.5) + 'ms linear';
-      flash.style.opacity    = '0';
-    }, dur);
-  }
-
-  // Glitch subtil sur le wrap vidéo
-  function triggerGlitch(wrap) {
-    // 30% de chance de glitch à chaque cut
-    if (Math.random() > 0.3) return;
-    wrap.classList.remove('glitch-active');
-    void wrap.offsetWidth; // reflow pour relancer l'animation
-    wrap.classList.add('glitch-active');
-    setTimeout(function() { wrap.classList.remove('glitch-active'); }, 80);
-  }
-
-  // Vibration caméra CSS
-  function triggerShake(wrap) {
-    // 40% de chance
-    if (Math.random() > 0.4) return;
-    wrap.classList.remove('shake-active');
-    void wrap.offsetWidth;
-    wrap.classList.add('shake-active');
-    setTimeout(function() { wrap.classList.remove('shake-active'); }, 100);
-  }
-
-  // ── 5. Transition vers le site (fin d'intro) ──────────────────
-  function revealSite() {
-    if (introDone) return;
-    introDone = true;
-
-    // Marquer l'intro comme vue dans localStorage
-    try { localStorage.setItem(INTRO_KEY, '1'); } catch(e) {}
-
-    var introEl = document.getElementById('intro');
-    if (!introEl) return;
-
-    // Cut sec vers noir puis fade-out
-    introEl.style.transition = 'opacity 0.55s ease';
-    introEl.style.opacity    = '0';
-    setTimeout(function() {
-      introEl.style.display = 'none';
-      // Swap classes : retire intro-active, ajoute intro-done
-      // → les animations CSS du logo et play-btn se relancent proprement
-      document.body.classList.remove('intro-active');
-      document.body.classList.add('intro-done');
-      // Recalculer la hauteur du canvas (gelée pendant l'intro)
-      if (typeof initBubbles === 'function') {
-        setTimeout(function() { initBubbles(); }, 50);
-      }
-    }, 580);
-  }
-
-  // ── 6. Bouton skip ────────────────────────────────────────────
-  window.skipIntro = function() { revealSite(); };
-
-  // ── 7. Lecture d'un clip (0.1 s à timestamp aléatoire) ────────
-  async function playClip(src, wrap) {
-    return new Promise(async function(resolve) {
-      // Créer l'élément vidéo
-      var video = document.createElement('video');
-      video.muted       = true;
-      video.playsInline = true;
-      video.preload     = 'auto';
-      video.src         = src;
-
-      // Ajouter au DOM (mais pas encore visible)
-      video.style.position = 'absolute';
-      video.style.inset    = '0';
-      video.style.width    = '100%';
-      video.style.height   = '100%';
-      video.style.objectFit = 'cover';
-      video.style.opacity  = '0';
-      wrap.appendChild(video);
-
-      // Attendre les métadonnées
-      await waitForMeta(video);
-
-      // Timestamp aléatoire sûr
-      var dur = video.duration || 0;
-      var ts  = 0;
-      if (dur > 0.2) {
-        ts = Math.random() * (dur - 0.2);
-      }
-
-      // Effets visuels + affichage du clip
-      triggerFlash();
-      triggerGlitch(wrap);
-      triggerShake(wrap);
-
-      // Cacher toutes les vidéos précédentes, afficher celle-ci
-      var allVids = wrap.querySelectorAll('video');
-      allVids.forEach(function(v) { v.style.opacity = '0'; });
-      video.style.opacity = '1';
-
-      // Positionner et lire
-      video.currentTime = ts;
-
-      try { await video.play(); } catch(e) { /* silencieux */ }
-
-      // Lire exactement 0.1 seconde puis stopper
-      await wait(100);
-      video.pause();
-
-      // Nettoyer cette vidéo après usage (évite accumulation mémoire)
-      setTimeout(function() {
-        try { video.src = ''; wrap.removeChild(video); } catch(e) {}
-      }, 200);
-
-      resolve();
-    });
-  }
-
-  // ── 8. Séquence principale ────────────────────────────────────
-  async function runIntro() {
-    var wrap = document.getElementById('intro-video-wrap');
-
-    // clips est déjà shuffled et réduit à 10 (≈ 1s)
-    for (var i = 0; i < clips.length; i++) {
-      if (introDone) break;
-      await playClip(clips[i], wrap);
-    }
-
-    // Fin : cut sec vers noir → fade vers le site
-    revealSite();
-  }
-
-  // ── 9. Démarrage ─────────────────────────────────────────────
-  // On lance l'intro dès que le DOM est prêt
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', runIntro);
-  } else {
-    runIntro();
-  }
-
-})();
-
 // Form
 function submitForm(e) {
   e.preventDefault();
@@ -1239,7 +1209,7 @@ function submitForm(e) {
   var isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   var isTouch  = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
 
-  // Sur écran tactile : cacher le curseur custom complètement
+  // Sur écran tactile : cacher curseur custom
   if (isTouch) {
     var curEl = document.getElementById('cur');
     if (curEl) curEl.style.display = 'none';
