@@ -307,17 +307,86 @@ body.lb-open #lb-close{ opacity:1; }
 
 @media(max-width:780px){.contact-grid{grid-template-columns:1fr;gap:48px 0;}.contact-divider{display:none;}.form-row{grid-template-columns:1fr;}#page-contact{padding:120px 28px 60px;}#nav{padding:28px 28px;}#footer{padding:24px 28px;}}
 #mobile-list{display:none;}
+
+/* ── Lightbox mobile ── */
+#mob-lb{
+  position:fixed;inset:0;z-index:1000;
+  background:#000;
+  display:none;flex-direction:column;
+  opacity:0;transition:opacity .3s ease;
+}
+#mob-lb.open{display:flex;opacity:1;}
+#mob-lb-video{
+  width:100%;
+  background:#000;
+  display:block;
+  flex-shrink:0;
+}
+#mob-lb-info{
+  padding:22px 20px 10px;
+  display:flex;flex-direction:column;gap:5px;
+}
+#mob-lb-title{
+  font-size:20px;font-weight:700;letter-spacing:.04em;
+  text-transform:uppercase;color:rgba(255,255,255,0.92);
+  -webkit-font-smoothing:antialiased;
+}
+#mob-lb-meta{
+  font-size:9px;font-weight:500;letter-spacing:.2em;
+  text-transform:uppercase;color:rgba(255,255,255,0.35);
+  -webkit-font-smoothing:antialiased;
+}
+/* Barre contrôles mobile */
+#mob-lb-bar{
+  padding:14px 20px 10px;
+  display:flex;flex-direction:column;gap:10px;
+  background:#000;
+}
+#mob-lb-progress-wrap{
+  width:100%;height:20px;display:flex;align-items:center;cursor:pointer;
+}
+#mob-lb-progress-track{
+  width:100%;height:3px;background:rgba(255,255,255,0.2);border-radius:3px;position:relative;overflow:hidden;
+}
+#mob-lb-progress{height:100%;background:#fff;border-radius:3px;width:0%;}
+#mob-lb-controls{
+  display:flex;align-items:center;justify-content:space-between;
+}
+#mob-lb-playpause{
+  background:none;border:none;cursor:pointer;padding:0;
+  display:flex;align-items:center;
+}
+#mob-lb-time{
+  font-size:11px;font-weight:500;letter-spacing:.05em;
+  color:rgba(255,255,255,0.4);-webkit-font-smoothing:antialiased;
+}
+#mob-lb-right{display:flex;align-items:center;gap:14px;}
+#mob-lb-vol{
+  background:none;border:none;cursor:pointer;padding:0;
+  display:flex;align-items:center;opacity:0.5;
+}
+#mob-lb-fullscreen{
+  background:none;border:none;cursor:pointer;padding:0;
+  display:flex;align-items:center;opacity:0.5;
+}
+/* Bouton X mobile */
+#mob-lb-close{
+  position:absolute;top:16px;right:16px;z-index:10;
+  width:30px;height:30px;border-radius:50%;
+  background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;
+}
+
 @media(max-width:768px){
   #play-btn{cursor:pointer !important;}
   body.mobile-open #canvas{display:none !important;}
   body.mobile-open{height:auto !important;overflow-y:auto !important;}
   body.mobile-open #mobile-list{display:block;padding:80px 16px 100px;background:#000;}
   .m-card{width:100%;margin-bottom:20px;position:relative;border-radius:5px;overflow:hidden;border:1px solid rgba(255,255,255,0.12);background:#111;cursor:pointer;}
-  .m-thumb{position:relative;width:100%;padding-top:75%;background:#111;}
+  .m-thumb{position:relative;width:100%;padding-top:56.25%;background:#111;}
   .m-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
-  .m-info{position:absolute;bottom:0;left:0;right:0;padding:12px 14px 11px;background:linear-gradient(transparent,rgba(0,0,0,0.78));}
-  .m-cat{font-size:8px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.42);margin-bottom:3px;-webkit-font-smoothing:antialiased;}
-  .m-title{font-size:13px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,0.9);-webkit-font-smoothing:antialiased;}
+  .m-info{display:none;}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
@@ -387,6 +456,41 @@ document.addEventListener('DOMContentLoaded', function() {
 <!-- Canvas -->
 <canvas id="canvas" width="1440" height="1530"></canvas>
 <div id="mobile-list"></div>
+
+<!-- Lightbox Mobile -->
+<div id="mob-lb">
+  <div id="mob-lb-close" onclick="closeMobLB()">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  </div>
+  <video id="mob-lb-video" playsinline controls="false"></video>
+  <div id="mob-lb-info">
+    <div id="mob-lb-title"></div>
+    <div id="mob-lb-meta"></div>
+  </div>
+  <div id="mob-lb-bar">
+    <div id="mob-lb-progress-wrap">
+      <div id="mob-lb-progress-track">
+        <div id="mob-lb-progress"></div>
+      </div>
+    </div>
+    <div id="mob-lb-controls">
+      <div style="display:flex;align-items:center;gap:14px;">
+        <button id="mob-lb-playpause" onclick="mobTogglePlay()">
+          <svg id="mob-pp-icon" width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+        </button>
+        <span id="mob-lb-time">0:00 / 0:00</span>
+      </div>
+      <div id="mob-lb-right">
+        <button id="mob-lb-vol" onclick="mobToggleMute()">
+          <svg id="mob-vol-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+        </button>
+        <button id="mob-lb-fullscreen" onclick="mobFullscreen()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Tooltip -->
 <div id="tooltip"><div id="tt-title"></div><div id="tt-cat"></div></div>
@@ -582,9 +686,15 @@ function enterPortfolio() {
   playBtn.classList.add('hidden');
   playBtn.style.display = 'none';
 
-  // 2. After brief pause, move logo to top-left
+  // 2. Move logo to top-left — stopper l'animation fadeIn d'abord
   setTimeout(function() {
-    document.getElementById('logo').classList.add('moved');
+    var logo = document.getElementById('logo');
+    // Figer l'opacité actuelle et couper l'animation pour que la transition CSS prenne
+    logo.style.opacity = '1';
+    logo.style.animation = 'none';
+    // Forcer un reflow pour que le navigateur applique ces styles avant la transition
+    void logo.offsetHeight;
+    logo.classList.add('moved');
   }, 100);
 
   // 3. While logo travels, fade in bubbles + nav + footer
@@ -1162,6 +1272,97 @@ document.addEventListener('keydown', function(e) {
     if (lbv.paused) lbv.play(); else lbv.pause();
   }
 });
+// ── Lightbox Mobile ──────────────────────────────────────────────────
+var mobLBOpen = false;
+
+function openMobLB(idx) {
+  var f   = FILMS[idx];
+  var lbv = document.getElementById('mob-lb-video');
+  document.getElementById('mob-lb-title').textContent = f.title;
+  document.getElementById('mob-lb-meta').textContent  = f.cat + ' — ' + f.year;
+  if (f.video) { lbv.src = f.video; lbv.play().catch(function(){}); }
+  // Met à jour l'icône play/pause
+  mobUpdatePP(true);
+
+  // Ajuster la hauteur vidéo : ratio natif
+  lbv.onloadedmetadata = function() {
+    var ratio = lbv.videoHeight / lbv.videoWidth;
+    lbv.style.height = (window.innerWidth * ratio) + 'px';
+  };
+
+  lbv.ontimeupdate = function() {
+    if (!lbv.duration) return;
+    document.getElementById('mob-lb-progress').style.width =
+      (lbv.currentTime / lbv.duration * 100) + '%';
+    document.getElementById('mob-lb-time').textContent =
+      fmtTime(lbv.currentTime) + ' / ' + fmtTime(lbv.duration);
+  };
+  lbv.onplay  = function() { mobUpdatePP(true); };
+  lbv.onpause = function() { mobUpdatePP(false); };
+
+  var lb = document.getElementById('mob-lb');
+  lb.style.display = 'flex';
+  requestAnimationFrame(function() { lb.classList.add('open'); });
+  document.body.style.overflow = 'hidden';
+  mobLBOpen = true;
+}
+
+function closeMobLB() {
+  var lbv = document.getElementById('mob-lb-video');
+  lbv.pause(); lbv.src = '';
+  var lb = document.getElementById('mob-lb');
+  lb.classList.remove('open');
+  setTimeout(function() { lb.style.display = 'none'; }, 300);
+  document.body.style.overflow = '';
+  document.getElementById('mob-lb-progress').style.width = '0%';
+  document.getElementById('mob-lb-time').textContent = '0:00 / 0:00';
+  mobLBOpen = false;
+}
+
+function mobUpdatePP(playing) {
+  var icon = document.getElementById('mob-pp-icon');
+  if (!icon) return;
+  icon.innerHTML = playing
+    ? '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>'
+    : '<polygon points="5,3 19,12 5,21"/>';
+}
+
+function mobTogglePlay() {
+  var lbv = document.getElementById('mob-lb-video');
+  if (lbv.paused) lbv.play(); else lbv.pause();
+}
+
+function mobToggleMute() {
+  var lbv = document.getElementById('mob-lb-video');
+  lbv.muted = !lbv.muted;
+  var icon = document.getElementById('mob-vol-icon');
+  icon.style.opacity = lbv.muted ? '0.25' : '1';
+  icon.style.stroke  = lbv.muted ? 'rgba(255,80,80,0.7)' : 'white';
+}
+
+function mobFullscreen() {
+  var lbv = document.getElementById('mob-lb-video');
+  if (lbv.requestFullscreen) lbv.requestFullscreen();
+  else if (lbv.webkitEnterFullscreen) lbv.webkitEnterFullscreen(); // iOS
+}
+
+// Timeline seek mobile
+document.addEventListener('DOMContentLoaded', function() {
+  var pw = document.getElementById('mob-lb-progress-wrap');
+  if (!pw) return;
+  function seekMob(e) {
+    var lbv  = document.getElementById('mob-lb-video');
+    if (!lbv.duration) return;
+    var touch = e.touches ? e.touches[0] : e;
+    var rect  = pw.getBoundingClientRect();
+    var pct   = Math.max(0, Math.min(1, (touch.clientX - rect.left) / rect.width));
+    lbv.currentTime = pct * lbv.duration;
+  }
+  pw.addEventListener('click',      seekMob);
+  pw.addEventListener('touchstart', seekMob, {passive:true});
+  pw.addEventListener('touchmove',  seekMob, {passive:true});
+});
+
 // Form
 function submitForm(e) {
   e.preventDefault();
@@ -1234,7 +1435,7 @@ function submitForm(e) {
   }, { threshold: 0.5 });
   list.addEventListener('click', function(e) {
     var card = e.target.closest('.m-card');
-    if (card) { portfolioOpen = true; openLB(parseInt(card.dataset.idx)); }
+    if (card) { portfolioOpen = true; openMobLB(parseInt(card.dataset.idx)); }
   });
   var _orig = enterPortfolio;
   enterPortfolio = function() {
