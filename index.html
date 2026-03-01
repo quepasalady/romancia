@@ -86,6 +86,10 @@ body:not(.portfolio-mode) #cur{
   100%{opacity:0.05;text-shadow:0 0 0px rgba(255,255,255,0);}
 }
 body,*{cursor:none !important;}
+@media (hover: none), (pointer: coarse) {
+  body,*{cursor:auto !important;}
+  #cur, #lb-cursor { display: none !important; }
+}
 
 /* ── PORTFOLIO LAYER ── */
 #portfolio{
@@ -233,6 +237,119 @@ body,*{cursor:none !important;}
 .form-msg.show{display:block;}
 
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
+
+/* ══════════════════════════════════════
+   INTRO CINÉMATIQUE — ROMANCIA
+   ══════════════════════════════════════ */
+
+/* Overlay principal de l'intro */
+#intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  background: #000;
+  overflow: hidden;
+}
+
+/* Conteneur vidéo de l'intro */
+#intro-video-wrap {
+  position: absolute;
+  inset: 0;
+}
+
+#intro-video-wrap video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Flash blanc ultra-court */
+#intro-flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 2;
+  transition: opacity 0s;
+}
+
+/* Grain cinéma overlay */
+#intro-grain {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.18;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 160px 160px;
+  mix-blend-mode: overlay;
+  animation: grainMove 0.08s steps(1) infinite;
+}
+@keyframes grainMove {
+  0%   { background-position: 0 0; }
+  10%  { background-position: -40px -20px; }
+  20%  { background-position: 30px 50px; }
+  30%  { background-position: -80px 10px; }
+  40%  { background-position: 60px -60px; }
+  50%  { background-position: -20px 80px; }
+  60%  { background-position: 100px 30px; }
+  70%  { background-position: -60px -40px; }
+  80%  { background-position: 20px 100px; }
+  90%  { background-position: -100px 60px; }
+  100% { background-position: 0 0; }
+}
+
+/* Vibration caméra CSS */
+@keyframes camShake {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  20%  { transform: translate(-1px, 1px) rotate(-0.2deg); }
+  40%  { transform: translate(1px, -1px) rotate(0.3deg); }
+  60%  { transform: translate(-2px, 0px) rotate(-0.1deg); }
+  80%  { transform: translate(1px, 2px) rotate(0.2deg); }
+  100% { transform: translate(0, 0) rotate(0deg); }
+}
+
+/* Glitch effect */
+@keyframes glitch {
+  0%   { clip-path: inset(40% 0 50% 0); transform: translate(-3px, 0); opacity: 0.8; }
+  25%  { clip-path: inset(10% 0 80% 0); transform: translate(3px, 0); opacity: 0.9; }
+  50%  { clip-path: inset(70% 0 10% 0); transform: translate(-2px, 1px); opacity: 0.7; }
+  75%  { clip-path: inset(20% 0 60% 0); transform: translate(2px, -1px); opacity: 1; }
+  100% { clip-path: inset(0% 0 0% 0); transform: translate(0, 0); opacity: 1; }
+}
+
+.glitch-active {
+  animation: glitch 0.06s steps(1) 1 !important;
+}
+
+.shake-active {
+  animation: camShake 0.08s ease 1 !important;
+}
+
+/* Bouton skip */
+#intro-skip {
+  position: absolute;
+  bottom: 32px;
+  right: 40px;
+  z-index: 10;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: .26em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.3);
+  background: none;
+  border: none;
+  cursor: pointer !important;
+  padding: 8px 0;
+  -webkit-font-smoothing: antialiased;
+  transition: color .2s;
+}
+#intro-skip:hover { color: rgba(255,255,255,0.7); }
 @media(max-width:780px){.contact-grid{grid-template-columns:1fr;gap:48px 0;}.contact-divider{display:none;}.form-row{grid-template-columns:1fr;}#page-contact{padding:120px 28px 60px;}#nav{padding:28px 28px;}#footer{padding:24px 28px;}}
 #mobile-list{display:none;}
 @media(max-width:768px){
@@ -248,8 +365,47 @@ body,*{cursor:none !important;}
   .m-title{font-size:13px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,0.9);-webkit-font-smoothing:antialiased;}
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+<script>emailjs.init('Xop27TPVb_2p3LWCH');</script>
 </head>
-<body style="height: 1530px;">
+<body style="height: 1530px;" class="intro-active">
+
+<!-- ═══════════════════════════════════════════════════
+     INTRO CINÉMATIQUE — ROMANCIA
+     Visible au chargement, disparaît après la séquence
+     ═══════════════════════════════════════════════════ -->
+<div id="intro">
+  <!-- Conteneur pour les <video> injectés dynamiquement -->
+  <div id="intro-video-wrap"></div>
+  <!-- Flash blanc entre les clips -->
+  <div id="intro-flash"></div>
+  <!-- Grain cinéma permanent -->
+  <div id="intro-grain"></div>
+  <!-- Bouton skip -->
+  <button id="intro-skip" onclick="skipIntro()">Passer ↓</button>
+</div>
+
+<style>
+/* ── Gèle les animations du site PENDANT l'intro ── */
+body.intro-active #logo,
+body.intro-active #play-btn {
+  animation: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+/* ── Relance proprement les animations APRÈS l'intro ── */
+body.intro-done #logo {
+  animation: fadeIn 1.2s ease-in-out 0.1s forwards !important;
+}
+body.intro-done #play-btn {
+  animation: fadeIn 1s ease-in-out 1.2s forwards !important;
+}
+/* ── Pendant l'intro, body height = 100vh (pas la hauteur canvas) ── */
+body.intro-active {
+  height: 100vh !important;
+  overflow: hidden !important;
+}
+</style>
 
 <!-- Cursor -->
 <div id="cur" style="left: 745px; top: 599px; transform: translate(-50%, -50%) scale(1); opacity: 1;">
@@ -374,10 +530,10 @@ var FILMS = [
   { title:"À L'AIDE - FAWZI",  cat:"Visualizer", year:"2025", video:"videos/clip15.mp4" },
   { title:"RÊVE OU CRÈVE",  cat:"Romancia", year:"2025", video:"videos/clip16.mp4" },
   { title:"SUR LES TOITS",  cat:"Romancia", year:"2025", video:"videos/clip17.mp4" },
-  { title:"L'ART DE LA SOLITUDE",  cat:"Romancia", year:"2025", video:"videos/clip18.mp4" },
-  { title:"LA LÉGENDE DU FIL ROUGE",  cat:"Romancia", year:"2025", video:"videos/clip19.mp4" },
-  { title:"ILS ME RIENT TOUS AU NEZ",  cat:"Romancia", year:"2025", video:"videos/clip20.mp4" },
-  { title:"HOLD ME - JADE",  cat:"Visualizer", year:"2025", video:"videos/clip21.mp4" },
+  { title:"L'ART DE LA SOLITUDE",  cat:"Expérimental", year:"2025", video:"videos/clip18.mp4" },
+  { title:"LA LÉGENDE DU FIL ROUGE",  cat:"Expérimental", year:"2025", video:"videos/clip19.mp4" },
+  { title:"ILS ME RIENT TOUS AU NEZ",  cat:"Expérimental", year:"2025", video:"videos/clip20.mp4" },
+  { title:"HOLD ME - JADE",  cat:"Expérimental", year:"2025", video:"videos/clip21.mp4" },
 ];
 
 // ── State ──
@@ -414,6 +570,12 @@ playBtn.addEventListener('mouseleave', function() {
 function enterPortfolio() {
   if (portfolioOpen) return;
   portfolioOpen = true;
+
+  // Sur tactile : s'assurer que le curseur custom est invisible
+  if (('ontouchstart' in window) || navigator.maxTouchPoints > 0) {
+    var curEl = document.getElementById('cur');
+    if (curEl) curEl.style.display = 'none';
+  }
 
   // 1. Hide play button
   playBtn.classList.add('hidden');
@@ -469,30 +631,50 @@ function resize() {
 }
 
 function initBubbles() {
-  var cols = 2, rows = Math.ceil(FILMS.length / cols);
-  var padX = 100, padTop = 160, padBot = 140;
-  var rowGap = 60, colGap = 52;
-  var hw = (W - padX * 2 - colGap) / 4;
-  var hh = hw * 0.75; // 4:3
+  var cols = 3, rows = Math.ceil(FILMS.length / cols); // 3 colonnes, 7 lignes
+  var padX = 60, padTop = 160, padBot = 140;
+  var rowGap = 50, colGap = 36;
+  var hw = (W - padX * 2 - colGap * (cols - 1)) / (cols * 2); // demi-largeur par carte
+  var hh = hw * 0.75; // ratio 4:3
   var actualH = padTop + rows * (hh * 2 + rowGap) - rowGap + padBot;
   canvas.height = actualH;
   document.body.style.height = actualH + 'px';
-  var isOdd = FILMS.length % 2 !== 0;
+  var isRemainder = FILMS.length % cols; // cartes restantes sur la dernière ligne
   bubbles = FILMS.map(function(f, i) {
-    var isLast = isOdd && i === FILMS.length - 1;
     var col = i % cols;
     var row = Math.floor(i / cols);
-    var ox = isLast ? W / 2 : padX + hw + col * (hw * 2 + colGap);
+    // Dernière ligne incomplète : centrer les cartes restantes
+    var isLastRow = (row === Math.floor((FILMS.length - 1) / cols)) && isRemainder > 0;
+    var colsInRow = isLastRow ? isRemainder : cols;
+    var totalW = colsInRow * hw * 2 + (colsInRow - 1) * colGap;
+    var startX = (W - totalW) / 2 + hw;
+    var ox = isLastRow ? startX + col * (hw * 2 + colGap) : padX + hw + col * (hw * 2 + colGap);
     var oy = padTop + hh + row * (hh * 2 + rowGap);
     var fAmp=5+Math.random()*7, fSpd=0.00035+Math.random()*0.00025, fOff=Math.random()*Math.PI*2;
     var fAmp2=4+Math.random()*6, fSpd2=0.00028+Math.random()*0.0002, fOff2=Math.random()*Math.PI*2;
     return {x:ox,y:oy,ox:ox,oy:oy,vx:0,vy:0,hw:hw,hh:hh,thw:hw,thh:hh,
-            fAmp:fAmp,fSpd:fSpd,fOff:fOff,fAmp2:fAmp2,fSpd2:fSpd2,fOff2:fOff2};
+            fAmp:fAmp,fSpd:fSpd,fOff:fOff,fAmp2:fAmp2,fSpd2:fSpd2,fOff2:fOff2,
+            hoverT:0, prevX:ox, velX:0};
   });
 }
 
 window.addEventListener('resize', resize);
 resize();
+
+// ── rrect : helper global ────────────────────────────────────────────
+function rrect(x, y, w, h, r2) {
+  ctx.beginPath();
+  ctx.moveTo(x-w+r2, y-h);
+  ctx.lineTo(x+w-r2, y-h);
+  ctx.quadraticCurveTo(x+w, y-h, x+w, y-h+r2);
+  ctx.lineTo(x+w, y+h-r2);
+  ctx.quadraticCurveTo(x+w, y+h, x+w-r2, y+h);
+  ctx.lineTo(x-w+r2, y+h);
+  ctx.quadraticCurveTo(x-w, y+h, x-w, y+h-r2);
+  ctx.lineTo(x-w, y-h+r2);
+  ctx.quadraticCurveTo(x-w, y-h, x-w+r2, y-h);
+  ctx.closePath();
+}
 
 var lastT = 0;
 function draw(t) {
@@ -500,12 +682,10 @@ function draw(t) {
   var dt = Math.min(t - lastT, 32); lastT = t;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Fade in bubbles when portfolio opens
   if (bubblesVisible && globalAlphaBubbles < 1) {
     globalAlphaBubbles = Math.min(1, globalAlphaBubbles + 0.018);
   }
   if (globalAlphaBubbles <= 0) return;
-  // Freeze physics + rendering when contact page is open
   if (contactOpen) return;
 
   // Find closest bubble to cursor
@@ -516,47 +696,48 @@ function draw(t) {
     var dist = Math.sqrt(dx*dx + dy*dy);
     if (dist < closestDist) { closestDist = dist; closestIdx = i; }
   }
-  // Only "hover" if cursor is reasonably close (within ~2x card width)
   var threshold = (bubbles[0] ? bubbles[0].hw * 3 : 300);
   hoveredIdx = (closestDist < threshold) ? closestIdx : -1;
 
+  // Physics
   for (var i = 0; i < bubbles.length; i++) {
     var b = bubbles[i], isH = (i === hoveredIdx);
-    // Float sine offset
     var fx = Math.sin(t * b.fSpd  + b.fOff)  * b.fAmp;
     var fy = Math.sin(t * b.fSpd2 + b.fOff2) * b.fAmp2;
 
+    // Y fixe — léger float seulement
+    b.y += (b.oy + fy - b.y) * 0.03;
+
     if (isH) {
-      // Attracted gently toward cursor
-      b.x += (mx - b.x) * 0.06;
-      b.y += (my - b.y) * 0.06;
+      var maxDriftX = b.hw * 0.13;
+      var pullX = b.ox + (W/2 - b.ox) * 0.18;
+      pullX = Math.max(b.ox - maxDriftX, Math.min(b.ox + maxDriftX, pullX));
+      b.x += (pullX - b.x) * 0.055;
     } else if (hoveredIdx >= 0) {
-      // Pushed away from hovered bubble's origin
       var bh = bubbles[hoveredIdx];
-      var rdx = b.ox - bh.ox, rdy = b.oy - bh.oy;
-      var rd = Math.sqrt(rdx*rdx + rdy*rdy) + 1;
-      var push = Math.min(120/rd, 6) * 14;
-      b.x += (b.ox + fx + (rdx/rd)*push - b.x) * 0.07;
-      b.y += (b.oy + fy + (rdy/rd)*push - b.y) * 0.07;
+      if (Math.abs(b.oy - bh.oy) < 10) {
+        var dir = (b.ox > bh.ox) ? 1 : -1;
+        b.x += (b.ox + dir * b.hw * 0.06 - b.x) * 0.06;
+      } else {
+        b.x += (b.ox + fx - b.x) * 0.05;
+      }
     } else {
-      // Float gently at rest
       b.x += (b.ox + fx - b.x) * 0.04;
-      b.y += (b.oy + fy - b.y) * 0.04;
     }
+    b.velX  = b.x - (b.prevX || b.x);
+    b.prevX = b.x;
   }
 
-  // Cursor: triangle when hovering rect, dot otherwise
+  // Cursor style
   if (portfolioOpen && hoveredIdx >= 0) {
     cur.querySelector('svg').style.display = 'block';
     document.body.classList.remove('portfolio-mode');
-  } else {
-    if (portfolioOpen) {
-      cur.querySelector('svg').style.display = 'none';
-      document.body.classList.add('portfolio-mode');
-    }
+  } else if (portfolioOpen) {
+    cur.querySelector('svg').style.display = 'none';
+    document.body.classList.add('portfolio-mode');
   }
 
-  // Draw order: non-hovered first
+  // Draw order: non-hovered first, hovered on top
   var order = [];
   for (var k = 0; k < bubbles.length; k++) { if (k !== hoveredIdx) order.push(k); }
   if (hoveredIdx >= 0) order.push(hoveredIdx);
@@ -564,93 +745,105 @@ function draw(t) {
   ctx.globalAlpha = globalAlphaBubbles;
 
   for (var oi = 0; oi < order.length; oi++) {
-    var i   = order[oi];
-    var b   = bubbles[i];
+    var i    = order[oi];
+    var b    = bubbles[i];
     var isHov = (i === hoveredIdx);
-    var targetR = isHov ? b.baseR * 1.38 : b.baseR;
-    b.r += (targetR - b.r) * 0.09;
-    var r = b.r;
+    var velX  = b.velX || 0;
 
-    var targetHW = b.hw;
-    var targetHH = b.hh;
-    b.thw = b.thw || b.hw;
-    b.thh = b.thh || b.hh;
-    b.thw += (targetHW - b.thw) * 0.1;
-    b.thh += (targetHH - b.thh) * 0.1;
-    var rw = b.thw, rh = b.thh;
-    var cr = 4; // very slight corner radius — sharp rectangular look
-
-    // Draw rect path helper
-    function rrect(x, y, w, h, r2) {
-      ctx.beginPath();
-      ctx.moveTo(x-w+r2, y-h);
-      ctx.lineTo(x+w-r2, y-h);
-      ctx.quadraticCurveTo(x+w, y-h, x+w, y-h+r2);
-      ctx.lineTo(x+w, y+h-r2);
-      ctx.quadraticCurveTo(x+w, y+h, x+w-r2, y+h);
-      ctx.lineTo(x-w+r2, y+h);
-      ctx.quadraticCurveTo(x-w, y+h, x-w, y+h-r2);
-      ctx.lineTo(x-w, y-h+r2);
-      ctx.quadraticCurveTo(x-w, y-h, x-w+r2, y-h);
-      ctx.closePath();
+    // Taille : hovered +20%, même rangée -20%, autres -8%
+    var targetHW = b.hw, targetHH = b.hh;
+    if (isHov) {
+      targetHW = b.hw * 1.20; targetHH = b.hh * 1.20;
+    } else if (hoveredIdx >= 0) {
+      var bh2 = bubbles[hoveredIdx];
+      if (Math.abs(b.oy - bh2.oy) < 10) {
+        targetHW = b.hw * 0.80; targetHH = b.hh * 0.80;
+      } else {
+        targetHW = b.hw * 0.92; targetHH = b.hh * 0.92;
+      }
     }
+    b.thw = b.thw || b.hw; b.thh = b.thh || b.hh;
+    b.thw += (targetHW - b.thw) * 0.08;
+    b.thh += (targetHH - b.thh) * 0.08;
+    var rw = b.thw, rh = b.thh, cr = 4;
 
-    // Dark fill (rect background)
+    var vid = vidEls[i];
+
+    // Fond noir
     rrect(b.x, b.y, rw, rh, cr);
     ctx.fillStyle = '#000';
     ctx.fill();
 
-    // Video preview inside rect
-var vid = vidEls[i];
-if (vid && vid.readyState >= 2) {
-  ctx.save();
-  rrect(b.x, b.y, rw, rh, cr);
-  ctx.clip();
-  ctx.globalAlpha = globalAlphaBubbles;
-  ctx.drawImage(vid, b.x-rw, b.y-rh, rw*2, rh*2);
-  if (!isHov) { ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(b.x-rw, b.y-rh, rw*2, rh*2); }
-  ctx.restore();
-  ctx.globalAlpha = globalAlphaBubbles;
-}
-
-    // White border — thin, crisp
-    rrect(b.x, b.y, rw, rh, cr);
-    ctx.strokeStyle = isHov ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.22)';
-    ctx.lineWidth   = isHov ? 1 : 0.7;
-    ctx.stroke();
-
-    // Text overlay inside rect — centered
-    if (isHov) {
+    // Motion blur léger (carte hovérée seulement)
+    if (isHov && vid && vid.readyState >= 2 && Math.abs(velX) > 0.2) {
       ctx.save();
-      var fi = FILMS[i];
+      rrect(b.x - velX * 2, b.y, rw, rh, cr);
+      ctx.clip();
+      ctx.globalAlpha = globalAlphaBubbles * 0.07;
+      ctx.drawImage(vid, b.x - velX*2 - rw, b.y - rh, rw*2, rh*2);
+      ctx.restore();
+      ctx.globalAlpha = globalAlphaBubbles;
+    }
 
-      // Dark overlay for legibility
+    // Vidéo
+    if (vid && vid.readyState >= 2) {
       ctx.save();
       rrect(b.x, b.y, rw, rh, cr);
       ctx.clip();
-      ctx.fillStyle = 'rgba(0,0,0,0.45)';
+      ctx.drawImage(vid, b.x-rw, b.y-rh, rw*2, rh*2);
+      if (!isHov) { ctx.fillStyle='rgba(0,0,0,0.55)'; ctx.fillRect(b.x-rw, b.y-rh, rw*2, rh*2); }
+      ctx.restore();
+    }
+
+    // Bordure blanche uniquement au hover
+    if (isHov) {
+      rrect(b.x, b.y, rw, rh, cr);
+      ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
+
+    // Texte hover : overlay + titre + cat/année
+    b.hoverT = b.hoverT || 0;
+    b.hoverT = isHov ? Math.min(1, b.hoverT + 0.10) : Math.max(0, b.hoverT - 0.12);
+
+    if (b.hoverT > 0) {
+      var ht   = b.hoverT;
+      var ease = ht * ht * (3 - 2 * ht);
+      var fi   = FILMS[i];
+
+      // Overlay sombre
+      ctx.save();
+      rrect(b.x, b.y, rw, rh, cr);
+      ctx.clip();
+      ctx.fillStyle = 'rgba(0,0,0,' + (0.45 * ease) + ')';
       ctx.fillRect(b.x - rw, b.y - rh, rw*2, rh*2);
       ctx.restore();
 
-      var smallSz = Math.max(9, Math.round(rh * 0.10));
-      var titleSz = Math.max(12, Math.round(rh * 0.17));
-      var gap     = titleSz * 0.6;
+      var titleSz = Math.max(11, Math.round(rh * 0.155));
+      var smallSz = Math.max(8,  Math.round(rh * 0.092));
+      var titleFont = '500 ' + titleSz + 'px "Helvetica Neue",Helvetica,Arial,sans-serif';
+      var title  = fi.title.toUpperCase();
+      var titleY = b.y; // centre exact de la carte
 
-      ctx.textAlign = 'center';
+      // Titre direct — centré, semi-bold
+      ctx.save();
+      ctx.font        = '600 ' + titleSz + 'px "Helvetica Neue",Helvetica,Arial,sans-serif';
+      ctx.globalAlpha = ease * 0.92 * globalAlphaBubbles;
+      ctx.fillStyle   = '#fff';
+      ctx.textAlign   = 'center';
       ctx.textBaseline = 'middle';
+      ctx.fillText(title, b.x, titleY);
+      ctx.restore();
 
-      // Category + year — above title
-      ctx.globalAlpha = 0.52 * globalAlphaBubbles;
-      ctx.font = '500 ' + smallSz + 'px "Helvetica Neue", Helvetica, Arial, sans-serif';
-      ctx.fillStyle = '#fff';
-      ctx.fillText((fi.cat + '  —  ' + fi.year).toUpperCase(), b.x, b.y - titleSz * 0.7);
-
-      // Title — centered
-      ctx.globalAlpha = 0.92 * globalAlphaBubbles;
-      ctx.font = '500 ' + titleSz + 'px "Helvetica Neue", Helvetica, Arial, sans-serif';
-      ctx.fillStyle = '#fff';
-      ctx.fillText(fi.title.toUpperCase(), b.x, b.y + gap);
-
+      // Cat + année
+      ctx.save();
+      ctx.font        = '500 ' + smallSz + 'px "Helvetica Neue",Helvetica,Arial,sans-serif';
+      ctx.globalAlpha = ease * 0.50 * globalAlphaBubbles;
+      ctx.fillStyle   = '#fff';
+      ctx.textAlign   = 'center';
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillText((fi.cat + '  —  ' + fi.year).toUpperCase(), b.x, titleY + smallSz * 1.55);
       ctx.restore();
     }
   }
@@ -786,22 +979,268 @@ document.addEventListener('keydown', function(e) {
   }
 });
 
+// ═══════════════════════════════════════════════════════════════
+//  INTRO CINÉMATIQUE — ROMANCIA
+//  Montage ultra-dynamique : 21 clips × 0.1 seconde chacun
+//  Durée totale ≈ 2–3 secondes (variable selon le chargement)
+// ═══════════════════════════════════════════════════════════════
+
+(function() {
+
+  // ── 1. Vérification localStorage : intro déjà vue ? ──────────
+  var INTRO_KEY = 'romancia_intro_seen_v1';
+  var introDone = false;
+
+  // Si l'intro a déjà été jouée, on la cache immédiatement
+  if (localStorage.getItem(INTRO_KEY) === '1') {
+    var introEl = document.getElementById('intro');
+    if (introEl) introEl.style.display = 'none';
+    // Retirer intro-active pour que le site s'affiche normalement
+    document.body.classList.remove('intro-active');
+    return; // On sort, rien à faire
+  }
+
+  // ── 2. Génération du tableau des 21 clips ─────────────────────
+  var clips = [];
+  for (var i = 1; i <= 21; i++) {
+    clips.push('videos/clip' + i + '.mp4');
+  }
+
+  // ── 3. Fisher-Yates shuffle ───────────────────────────────────
+  function shuffle(arr) {
+    var a = arr.slice(); // copie
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+
+  // ── 4. Utilitaires ────────────────────────────────────────────
+
+  // Promesse qui résout quand loadedmetadata est déclenché
+  function waitForMeta(video) {
+    return new Promise(function(resolve, reject) {
+      if (video.readyState >= 1) { resolve(); return; }
+      var timeout = setTimeout(function() { resolve(); }, 1500); // timeout de sécurité 1.5s
+      video.addEventListener('loadedmetadata', function handler() {
+        clearTimeout(timeout);
+        video.removeEventListener('loadedmetadata', handler);
+        resolve();
+      });
+      video.addEventListener('error', function errHandler() {
+        clearTimeout(timeout);
+        video.removeEventListener('error', errHandler);
+        resolve(); // on continue même en cas d'erreur
+      });
+    });
+  }
+
+  // Attendre n millisecondes
+  function wait(ms) {
+    return new Promise(function(resolve) { setTimeout(resolve, ms); });
+  }
+
+  // Flash blanc ultra-court (durée aléatoire 20–60ms)
+  function triggerFlash() {
+    var flash = document.getElementById('intro-flash');
+    if (!flash) return;
+    var dur = 20 + Math.random() * 40; // 20–60ms
+    flash.style.transition = 'none';
+    flash.style.opacity    = '1';
+    setTimeout(function() {
+      flash.style.transition = 'opacity ' + (dur * 0.5) + 'ms linear';
+      flash.style.opacity    = '0';
+    }, dur);
+  }
+
+  // Glitch subtil sur le wrap vidéo
+  function triggerGlitch(wrap) {
+    // 30% de chance de glitch à chaque cut
+    if (Math.random() > 0.3) return;
+    wrap.classList.remove('glitch-active');
+    void wrap.offsetWidth; // reflow pour relancer l'animation
+    wrap.classList.add('glitch-active');
+    setTimeout(function() { wrap.classList.remove('glitch-active'); }, 80);
+  }
+
+  // Vibration caméra CSS
+  function triggerShake(wrap) {
+    // 40% de chance
+    if (Math.random() > 0.4) return;
+    wrap.classList.remove('shake-active');
+    void wrap.offsetWidth;
+    wrap.classList.add('shake-active');
+    setTimeout(function() { wrap.classList.remove('shake-active'); }, 100);
+  }
+
+  // ── 5. Transition vers le site (fin d'intro) ──────────────────
+  function revealSite() {
+    if (introDone) return;
+    introDone = true;
+
+    // Marquer l'intro comme vue dans localStorage
+    try { localStorage.setItem(INTRO_KEY, '1'); } catch(e) {}
+
+    var introEl = document.getElementById('intro');
+    if (!introEl) return;
+
+    // Cut sec vers noir puis fade-out
+    introEl.style.transition = 'opacity 0.55s ease';
+    introEl.style.opacity    = '0';
+    setTimeout(function() {
+      introEl.style.display = 'none';
+      // Swap classes : retire intro-active, ajoute intro-done
+      // → les animations CSS du logo et play-btn se relancent proprement
+      document.body.classList.remove('intro-active');
+      document.body.classList.add('intro-done');
+      // Recalculer la hauteur du canvas (gelée pendant l'intro)
+      if (typeof initBubbles === 'function') {
+        setTimeout(function() { initBubbles(); }, 50);
+      }
+    }, 580);
+  }
+
+  // ── 6. Bouton skip ────────────────────────────────────────────
+  window.skipIntro = function() { revealSite(); };
+
+  // ── 7. Lecture d'un clip (0.1 s à timestamp aléatoire) ────────
+  async function playClip(src, wrap) {
+    return new Promise(async function(resolve) {
+      // Créer l'élément vidéo
+      var video = document.createElement('video');
+      video.muted       = true;
+      video.playsInline = true;
+      video.preload     = 'auto';
+      video.src         = src;
+
+      // Ajouter au DOM (mais pas encore visible)
+      video.style.position = 'absolute';
+      video.style.inset    = '0';
+      video.style.width    = '100%';
+      video.style.height   = '100%';
+      video.style.objectFit = 'cover';
+      video.style.opacity  = '0';
+      wrap.appendChild(video);
+
+      // Attendre les métadonnées
+      await waitForMeta(video);
+
+      // Timestamp aléatoire sûr
+      var dur = video.duration || 0;
+      var ts  = 0;
+      if (dur > 0.2) {
+        ts = Math.random() * (dur - 0.2);
+      }
+
+      // Effets visuels + affichage du clip
+      triggerFlash();
+      triggerGlitch(wrap);
+      triggerShake(wrap);
+
+      // Cacher toutes les vidéos précédentes, afficher celle-ci
+      var allVids = wrap.querySelectorAll('video');
+      allVids.forEach(function(v) { v.style.opacity = '0'; });
+      video.style.opacity = '1';
+
+      // Positionner et lire
+      video.currentTime = ts;
+
+      try { await video.play(); } catch(e) { /* silencieux */ }
+
+      // Lire exactement 0.1 seconde puis stopper
+      await wait(100);
+      video.pause();
+
+      // Nettoyer cette vidéo après usage (évite accumulation mémoire)
+      setTimeout(function() {
+        try { video.src = ''; wrap.removeChild(video); } catch(e) {}
+      }, 200);
+
+      resolve();
+    });
+  }
+
+  // ── 8. Séquence principale ────────────────────────────────────
+  async function runIntro() {
+    var wrap      = document.getElementById('intro-video-wrap');
+    var shuffled  = shuffle(clips);
+
+    // Jouer chaque clip en séquence
+    for (var i = 0; i < shuffled.length; i++) {
+      if (introDone) break; // skip si déjà terminé
+      await playClip(shuffled[i], wrap);
+    }
+
+    // Fin : cut sec vers noir → fade vers le site
+    revealSite();
+  }
+
+  // ── 9. Démarrage ─────────────────────────────────────────────
+  // On lance l'intro dès que le DOM est prêt
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', runIntro);
+  } else {
+    runIntro();
+  }
+
+})();
+
 // Form
 function submitForm(e) {
   e.preventDefault();
-  var btn = e.currentTarget.querySelector('.form-submit');
-  var msg = document.getElementById('form-msg');
+  var form = e.currentTarget;
+  var btn  = form.querySelector('.form-submit');
+  var msg  = document.getElementById('form-msg');
+
   btn.disabled = true; btn.style.opacity = '0.5';
-  setTimeout(function() {
+  btn.textContent = 'Envoi en cours...';
+
+  // Récupérer les valeurs du formulaire
+  var params = {
+    nom:     form.querySelector('[name="name"]').value,
+    email:   form.querySelector('[name="email"]').value,
+    projet:  form.querySelector('[name="type"]').value,
+    budget:  form.querySelector('[name="budget"]').value,
+    message: form.querySelector('[name="message"]').value
+  };
+
+  // Envoyer les 2 mails en parallèle
+  Promise.all([
+    emailjs.send('service_z78sffl', 'template_jt875yq', params),  // toi tu reçois
+    emailjs.send('service_z78sffl', 'template_x5xdhhv', params)   // client reçoit confirmation
+  ])
+  .then(function() {
+    msg.textContent = 'Message envoyé — on vous répond rapidement.';
+    msg.style.color = 'rgba(255,255,255,0.5)';
     msg.classList.add('show');
+    btn.textContent = 'Envoyer la demande';
     btn.disabled = false; btn.style.opacity = '';
-    e.currentTarget.reset();
-  }, 800);
+    form.reset();
+  })
+  .catch(function(err) {
+    console.error('EmailJS error:', err);
+    msg.textContent = 'Une erreur est survenue, réessayez ou contactez-nous directement.';
+    msg.style.color = 'rgba(255,80,80,0.8)';
+    msg.classList.add('show');
+    btn.textContent = 'Envoyer la demande';
+    btn.disabled = false; btn.style.opacity = '';
+  });
 }
 
 // ── MOBILE ──
 (function() {
   var isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  var isTouch  = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+
+  // Sur écran tactile : cacher le curseur custom complètement
+  if (isTouch) {
+    var curEl = document.getElementById('cur');
+    if (curEl) curEl.style.display = 'none';
+    var lbCurEl = document.getElementById('lb-cursor');
+    if (lbCurEl) lbCurEl.style.display = 'none';
+  }
+
   if (!isMobile) return;
   document.getElementById('play-btn').style.cursor = 'pointer';
   var list = document.getElementById('mobile-list');
