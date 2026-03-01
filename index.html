@@ -235,58 +235,33 @@ body,*{cursor:none !important;}
 @keyframes fadeIn{from{opacity:0;}to{opacity:1;}}
 @media(max-width:780px){.contact-grid{grid-template-columns:1fr;gap:48px 0;}.contact-divider{display:none;}.form-row{grid-template-columns:1fr;}#page-contact{padding:120px 28px 60px;}#nav{padding:28px 28px;}#footer{padding:24px 28px;}}
 
-/* ── MOBILE ONLY ── */
+/* ── MOBILE LIST ── */
+#mobile-list{display:none;}
 @media(max-width:768px){
-  #cur,#lb-cursor{display:none!important;}
-  body,*{cursor:auto!important;}
-  #canvas{display:none!important;}
-  #play-btn{display:none!important;}
-
-  body.mobile-ready{height:auto!important;overflow-y:auto!important;}
-
-  #mobile-list{
-    display:none;
-    padding:80px 18px 100px;
+  /* On mobile, play-btn is visible but needs touch-friendly cursor */
+  #play-btn{cursor:pointer !important;}
+  body.mobile-open #canvas{display:none !important;}
+  body.mobile-open{height:auto !important;overflow-y:auto !important;}
+  body.mobile-open #mobile-list{
+    display:block;
+    padding:80px 16px 100px;
     background:#000;
-    min-height:100vh;
   }
-  body.mobile-ready #mobile-list{display:block;}
-
   .m-card{
-    width:100%;
-    margin-bottom:24px;
-    position:relative;
-    border-radius:5px;
-    overflow:hidden;
+    width:100%;margin-bottom:20px;position:relative;
+    border-radius:5px;overflow:hidden;
     border:1px solid rgba(255,255,255,0.12);
-    background:#000;
-    cursor:pointer;
+    background:#111;cursor:pointer;
   }
-  .m-thumb{
-    position:relative;
-    width:100%;
-    padding-top:75%; /* 4:3 */
-    background:#111;
-  }
-  .m-vid{
-    position:absolute;
-    inset:0;width:100%;height:100%;
-    object-fit:cover;display:block;
-  }
+  .m-thumb{position:relative;width:100%;padding-top:75%;background:#111;}
+  .m-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
   .m-info{
-    position:absolute;
-    bottom:0;left:0;right:0;
-    padding:14px 14px 12px;
+    position:absolute;bottom:0;left:0;right:0;
+    padding:12px 14px 11px;
     background:linear-gradient(transparent,rgba(0,0,0,0.78));
   }
-  .m-cat{
-    font-size:8px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;
-    color:rgba(255,255,255,0.42);margin-bottom:4px;-webkit-font-smoothing:antialiased;
-  }
-  .m-title{
-    font-size:13px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;
-    color:rgba(255,255,255,0.9);-webkit-font-smoothing:antialiased;
-  }
+  .m-cat{font-size:8px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,0.42);margin-bottom:3px;-webkit-font-smoothing:antialiased;}
+  .m-title{font-size:13px;font-weight:500;letter-spacing:.05em;text-transform:uppercase;color:rgba(255,255,255,0.9);-webkit-font-smoothing:antialiased;}
 }
 </style>
 </head>
@@ -313,8 +288,7 @@ body,*{cursor:none !important;}
 
 <!-- Canvas -->
 <canvas id="canvas" width="1440" height="1530"></canvas>
-
-<!-- Mobile list (hidden on desktop) -->
+<!-- Mobile list -->
 <div id="mobile-list"></div>
 
 <!-- Tooltip -->
@@ -368,7 +342,7 @@ body,*{cursor:none !important;}
     <div class="contact-left">
       <h2>Travaillons<br>ensemble.</h2>
       <div class="info-block"><div class="info-label">Basé à</div><div class="info-value">Paris, France</div></div>
-      <div class="info-block"><div class="info-label">Email</div><div class="info-value"><a href="/cdn-cgi/l/email-protection#10627f7d717e7379713e60627f7450777d71797c3e737f7d"><span class="__cf_email__" data-cfemail="60120f0d010e0309014e10120f0420070d01090c4e030f0d">[email&#160;protected]</span></a></div></div>
+      <div class="info-block"><div class="info-label">Email</div><div class="info-value"><a href="/cdn-cgi/l/email-protection#ccbea3a1ada2afa5ade2bcbea3a88caba1ada5a0e2afa3a1"><span class="__cf_email__" data-cfemail="83f1eceee2ede0eae2adf3f1ece7c3e4eee2eaefade0ecee">[email&#160;protected]</span></a></div></div>
       <div class="info-block"><div class="info-label">Instagram</div><div class="info-value"><a href="https://www.instagram.com/romancia.prod/" target="_blank">@romancia.prod</a></div></div>
       <div class="info-block"><div class="info-label">TikTok</div><div class="info-value"><a href="https://www.tiktok.com/@romanciaprod" target="_blank">@romanciaprod</a></div></div>
       <div class="info-block"><div class="info-label">Disponibilité</div><div class="info-value">Ouverts aux projets<br>France &amp; International</div></div>
@@ -492,7 +466,6 @@ var vidEls = FILMS.map(function(f) {
   var v = document.createElement('video');
   v.src = f.video; v.muted = true; v.loop = true; v.playsInline = true;
   v.preload = 'auto';
-  // Play briefly to decode first frame, then pause
   v.play().then(function() {
     setTimeout(function() { if (!v._previewing) v.pause(); }, 800);
   }).catch(function(){});
@@ -548,7 +521,7 @@ function draw(t) {
   // Freeze physics + rendering when contact page is open
   if (contactOpen) return;
 
-  // Hover detection — locks on first contact, click outside to release
+  // Hover — locks on first contact, click outside to release
   if (!hoveredLocked) {
     var newHover = -1;
     for (var i = 0; i < bubbles.length; i++) {
@@ -645,6 +618,11 @@ if (vid && vid.readyState >= 2) {
   ctx.clip();
   ctx.globalAlpha = globalAlphaBubbles;
   ctx.drawImage(vid, b.x-rw, b.y-rh, rw*2, rh*2);
+  // Dark overlay on non-hovered cards
+  if (!isHov) {
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.fillRect(b.x-rw, b.y-rh, rw*2, rh*2);
+  }
   ctx.restore();
   ctx.globalAlpha = globalAlphaBubbles;
 }
@@ -843,19 +821,15 @@ function submitForm(e) {
   }, 800);
 }
 
-// ── MOBILE ──
+// ── MOBILE — list view after BIENVENUE is tapped ──
 (function() {
   var isMobile = window.innerWidth <= 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
   if (!isMobile) return;
 
-  document.body.classList.add('mobile-ready');
+  // Make play button tappable on touch
+  document.getElementById('play-btn').style.cursor = 'pointer';
 
-  // Show nav/footer immediately (no play button needed)
-  document.getElementById('logo').classList.add('moved');
-  document.getElementById('nav').classList.add('show');
-  document.getElementById('footer').classList.add('show');
-
-  // Build card list
+  // Build list (hidden until enterPortfolio fires)
   var list = document.getElementById('mobile-list');
   FILMS.forEach(function(f, i) {
     var card = document.createElement('div');
@@ -872,24 +846,17 @@ function submitForm(e) {
     list.appendChild(card);
   });
 
-  // IntersectionObserver — play video when ≥50% visible, pause otherwise
+  // IntersectionObserver — play/pause on scroll
   var observer = new IntersectionObserver(function(entries) {
     entries.forEach(function(entry) {
       var v = entry.target.querySelector('.m-vid');
       if (!v) return;
-      if (entry.isIntersecting) {
-        v.play().catch(function(){});
-      } else {
-        v.pause();
-      }
+      if (entry.isIntersecting) v.play().catch(function(){});
+      else v.pause();
     });
   }, { threshold: 0.5 });
 
-  list.querySelectorAll('.m-card').forEach(function(card) {
-    observer.observe(card);
-  });
-
-  // Tap card → open lightbox
+  // Tap → lightbox
   list.addEventListener('click', function(e) {
     var card = e.target.closest('.m-card');
     if (!card) return;
@@ -897,11 +864,24 @@ function submitForm(e) {
     openLB(parseInt(card.dataset.idx));
   });
 
-  // showPage override for mobile
-  var origShowPage = window.showPage;
-  window.showPage = function(p) {
-    origShowPage(p);
-    list.style.display = (p === 'contact') ? 'none' : 'block';
+  // Hook into enterPortfolio — show list after intro
+  var _orig = enterPortfolio;
+  enterPortfolio = function() {
+    _orig();
+    setTimeout(function() {
+      document.body.classList.add('mobile-open');
+      document.body.style.height = 'auto';
+      document.body.style.overflowY = 'auto';
+      list.querySelectorAll('.m-card').forEach(function(c) { observer.observe(c); });
+    }, 600);
+  };
+
+  // showPage override — hide/show list
+  var _origShowPage = showPage;
+  showPage = function(p) {
+    _origShowPage(p);
+    if (document.body.classList.contains('mobile-open'))
+      list.style.display = (p === 'contact') ? 'none' : 'block';
   };
 })();
 </script>
