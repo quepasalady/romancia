@@ -66,19 +66,25 @@ body:not(.portfolio-mode) #cur{
   top:50%; left:50%;
   transform:translate(-50%, 90px);
   font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;
-  font-weight:500;font-size:16px;
-  letter-spacing:.28em;text-transform:uppercase;
+  font-weight:500;font-size:13px;
+  letter-spacing:.34em;text-transform:uppercase;
   color:#fff;background:none;border:none;
   cursor:none;
   opacity:0;
   animation:fadeIn 1s ease-in-out 1.4s forwards;
   -webkit-font-smoothing:antialiased;
-  transition:opacity .5s ease, transform .5s ease;
+  transition:transform .5s ease;
   z-index:200;
-  padding:12px 0;
+  padding:12px 4px;
 }
-#play-btn.hidden{opacity:0 !important;pointer-events:none;transform:translate(-50%,90px) translateY(8px);}
-#play-btn:hover{opacity:.5 !important;}
+#play-btn.hidden{opacity:0 !important;pointer-events:none;animation:none !important;transform:translate(-50%,90px) translateY(8px);}
+#play-btn.glowing{animation:fadeIn 0s forwards, glowBreath 2.6s ease-in-out infinite;}
+#play-btn:hover{animation:none !important;text-shadow:0 0 30px rgba(255,255,255,0.75),0 0 80px rgba(255,255,255,0.25);opacity:.9 !important;}
+@keyframes glowBreath{
+  0%   {text-shadow:0 0 4px rgba(255,255,255,0.05);opacity:.38;}
+  50%  {text-shadow:0 0 28px rgba(255,255,255,0.78),0 0 70px rgba(255,255,255,0.22);opacity:1;}
+  100% {text-shadow:0 0 4px rgba(255,255,255,0.05);opacity:.38;}
+}
 body,*{cursor:none !important;}
 
 /* ── PORTFOLIO LAYER ── */
@@ -243,7 +249,7 @@ body,*{cursor:none !important;}
 <div id="logo">ROMANCIA</div>
 
 <!-- Play button (intro only) -->
-<button id="play-btn" onclick="enterPortfolio()">PLAY</button>
+<button id="play-btn" onclick="enterPortfolio()">BIENVENUE</button>
 
 <!-- Nav (portfolio) -->
 <div id="nav">
@@ -305,7 +311,7 @@ body,*{cursor:none !important;}
     <div class="contact-left">
       <h2>Travaillons<br>ensemble.</h2>
       <div class="info-block"><div class="info-label">Basé à</div><div class="info-value">Paris, France</div></div>
-      <div class="info-block"><div class="info-label">Email</div><div class="info-value"><a href="mailto:romancia.prod@gmail.com">romancia.prod@gmail.com</a></div></div>
+      <div class="info-block"><div class="info-label">Email</div><div class="info-value"><a href="/cdn-cgi/l/email-protection#10627f7d717e7379713e60627f7450777d71797c3e737f7d"><span class="__cf_email__" data-cfemail="60120f0d010e0309014e10120f0420070d01090c4e030f0d">[email&#160;protected]</span></a></div></div>
       <div class="info-block"><div class="info-label">Instagram</div><div class="info-value"><a href="https://www.instagram.com/romancia.prod/" target="_blank">@romancia.prod</a></div></div>
       <div class="info-block"><div class="info-label">TikTok</div><div class="info-value"><a href="https://www.tiktok.com/@romanciaprod" target="_blank">@romanciaprod</a></div></div>
       <div class="info-block"><div class="info-label">Disponibilité</div><div class="info-value">Ouverts aux projets<br>France &amp; International</div></div>
@@ -331,7 +337,7 @@ body,*{cursor:none !important;}
   </div>
 </div>
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ══════════════════════════════════
 // TES FILMS — édite ici
 // video: chemin vers ton mp4 ex: "videos/clip.mp4"
@@ -371,6 +377,8 @@ document.addEventListener('mousemove', function(e) {
 
 // Cursor states
 var playBtn = document.getElementById('play-btn');
+setTimeout(function(){ playBtn.classList.add('glowing'); }, 2400);
+var hoveredLocked = false;
 playBtn.addEventListener('mouseenter', function() {
   cur.style.transform = 'translate(-50%,-50%) scale(1.3)';
   cur.style.opacity = '0.55';
@@ -426,36 +434,43 @@ var vidEls = FILMS.map(function(f) {
   if (!f.video) return null;
   var v = document.createElement('video');
   v.src = f.video; v.muted = true; v.loop = true; v.playsInline = true;
+  v.preload = 'auto';
+  // Play briefly to load first frame, then pause
+  v.play().then(function() {
+    setTimeout(function() { if (!v._previewing) v.pause(); }, 800);
+  }).catch(function(){});
   return v;
 });
 
 function resize() {
   W = window.innerWidth;
   H = window.innerHeight;
-  var VH = H * 1.7;
-  canvas.width  = W;
-  canvas.height = VH;
-  // Set body height so scroll works
-  document.body.style.height = VH + 'px';
+  canvas.width = W;
   initBubbles();
 }
 
 function initBubbles() {
-  // 3 columns x 4 rows fixed grid
-  var cols = 3, rows = 4;
-  var padX = 120, padTop = 140, padBot = 120;
-  var VH   = H * 1.7;
-  var cellW = (W - padX * 2) / cols;
-  var cellH = (VH - padTop - padBot) / rows;
-  var gap  = 90;
-  var hw   = (cellW - gap) / 2;
-  var hh   = hw * 0.75; // 4:3
-  bubbles  = FILMS.map(function(f, i) {
+  var cols = 2, rows = 6;
+  var padX = 100, padTop = 160, padBot = 140;
+  var rowGap = 60, colGap = 52;
+  var hw = (W - padX * 2 - colGap) / 4;
+  var hh = hw * 0.75; // 4:3
+  var actualH = padTop + rows * (hh * 2 + rowGap) - rowGap + padBot;
+  canvas.height = actualH;
+  document.body.style.height = actualH + 'px';
+  bubbles = FILMS.map(function(f, i) {
     var col = i % cols;
     var row = Math.floor(i / cols);
-    var ox  = padX + col * cellW + cellW / 2;
-    var oy  = padTop + row * cellH + cellH / 2;
-    return { x:ox, y:oy, ox:ox, oy:oy, vx:0, vy:0, hw:hw, hh:hh, thw:hw, thh:hh, returning:false };
+    var ox = padX + hw + col * (hw * 2 + colGap);
+    var oy = padTop + hh + row * (hh * 2 + rowGap);
+    var fAmp  = 5  + Math.random() * 7;
+    var fSpd  = 0.00035 + Math.random() * 0.00025;
+    var fOff  = Math.random() * Math.PI * 2;
+    var fAmp2 = 4  + Math.random() * 6;
+    var fSpd2 = 0.00028 + Math.random() * 0.0002;
+    var fOff2 = Math.random() * Math.PI * 2;
+    return { x:ox, y:oy, ox:ox, oy:oy, vx:0, vy:0, hw:hw, hh:hh, thw:hw, thh:hh,
+             fAmp:fAmp, fSpd:fSpd, fOff:fOff, fAmp2:fAmp2, fSpd2:fSpd2, fOff2:fOff2 };
   });
 }
 
@@ -476,40 +491,36 @@ function draw(t) {
   // Freeze physics + rendering when contact page is open
   if (contactOpen) return;
 
-  // Hover detection (sticky)
-  var newHover = -1;
-  for (var i = 0; i < bubbles.length; i++) {
-    var b = bubbles[i], hw = b.thw||b.hw, hh = b.thh||b.hh;
-    if (Math.abs(b.x-mx) < hw && Math.abs(b.y-my) < hh) { newHover=i; break; }
+  // Hover detection — locks on first contact, click outside to release
+  if (!hoveredLocked) {
+    var newHover = -1;
+    for (var i = 0; i < bubbles.length; i++) {
+      var b = bubbles[i], hw = b.thw||b.hw, hh = b.thh||b.hh;
+      if (Math.abs(b.x-mx) < hw && Math.abs(b.y-my) < hh) { newHover=i; break; }
+    }
+    if (newHover >= 0) { hoveredIdx = newHover; hoveredLocked = true; }
+    else hoveredIdx = -1;
   }
-  if (hoveredIdx >= 0 && newHover < 0) {
-    var bCur = bubbles[hoveredIdx];
-    if (Math.abs(bCur.x-mx) < (bCur.thw||bCur.hw)+28 && Math.abs(bCur.y-my) < (bCur.thh||bCur.hh)+28)
-      newHover = hoveredIdx;
-  }
-  if (hoveredIdx >= 0 && newHover < 0) { for (var i=0;i<bubbles.length;i++) bubbles[i].returning=true; }
-  hoveredIdx = newHover;
 
   var vcx = W/2, vcy = window.scrollY + H/2;
 
   for (var i = 0; i < bubbles.length; i++) {
     var b = bubbles[i], isH = (i===hoveredIdx);
+    var fx = Math.sin(t * b.fSpd  + b.fOff)  * b.fAmp;
+    var fy = Math.sin(t * b.fSpd2 + b.fOff2) * b.fAmp2;
     if (isH) {
       b.x += (vcx - b.x) * 0.08;
       b.y += (vcy - b.y) * 0.08;
-      b.vx = 0; b.vy = 0; b.returning = false;
     } else if (hoveredIdx >= 0) {
       var bh = bubbles[hoveredIdx];
       var rdx = b.ox - bh.ox, rdy = b.oy - bh.oy;
       var rd  = Math.sqrt(rdx*rdx + rdy*rdy) + 1;
       var push = Math.min(80/rd, 5) * 16;
-      b.x += (b.ox + (rdx/rd)*push - b.x) * 0.07;
-      b.y += (b.oy + (rdy/rd)*push - b.y) * 0.07;
-      b.vx = 0; b.vy = 0;
+      b.x += (b.ox + fx + (rdx/rd)*push - b.x) * 0.07;
+      b.y += (b.oy + fy + (rdy/rd)*push - b.y) * 0.07;
     } else {
-      b.x += (b.ox - b.x) * 0.09;
-      b.y += (b.oy - b.y) * 0.09;
-      if (Math.abs(b.x-b.ox)+Math.abs(b.y-b.oy) < 0.3) { b.x=b.ox; b.y=b.oy; b.returning=false; }
+      b.x += (b.ox + fx - b.x) * 0.04;
+      b.y += (b.oy + fy - b.y) * 0.04;
     }
   }
 
@@ -539,9 +550,9 @@ function draw(t) {
     b.r += (targetR - b.r) * 0.09;
     var r = b.r;
 
-    // Animate size: hovered grows, others shrink slightly
-    var targetHW = isHov ? b.hw * 2.2 : b.hw;
-    var targetHH = isHov ? b.hh * 2.2 : b.hh;
+    // No size change on hover
+    var targetHW = b.hw;
+    var targetHH = b.hh;
     b.thw = b.thw || b.hw;
     b.thh = b.thh || b.hh;
     b.thw += (targetHW - b.thw) * 0.1;
@@ -575,14 +586,8 @@ if (vid && vid.readyState >= 2) {
   ctx.save();
   rrect(b.x, b.y, rw, rh, cr);
   ctx.clip();
-
-  // FLou si pas hover
-  ctx.filter = isHov ? "blur(0px)" : "blur(6px)";
-  ctx.globalAlpha = isHov ? 1 * globalAlphaBubbles : 0.6 * globalAlphaBubbles;
-
+  ctx.globalAlpha = globalAlphaBubbles;
   ctx.drawImage(vid, b.x-rw, b.y-rh, rw*2, rh*2);
-
-  ctx.filter = "none";
   ctx.restore();
   ctx.globalAlpha = globalAlphaBubbles;
 }
@@ -642,6 +647,7 @@ setInterval(function() {
   vidEls.forEach(function(v, i) {
     if (!v) return;
     if (i === hoveredIdx) {
+      v._previewing = true;
       if (v.paused) {
         // First hover: pick random start point (needs metadata)
         if (v.readyState >= 1 && previewStart[i] < 0) {
@@ -656,6 +662,7 @@ setInterval(function() {
         v.currentTime = previewStart[i];
       }
     } else {
+      v._previewing = false;
       if (!v.paused) {
         v.pause();
         previewStart[i] = -1; // reset so next hover picks new random spot
@@ -664,8 +671,18 @@ setInterval(function() {
   });
 }, 80);
 
-canvas.addEventListener('click', function() {
-  if (portfolioOpen && hoveredIdx >= 0) openLB(hoveredIdx);
+canvas.addEventListener('click', function(e) {
+  if (!portfolioOpen) return;
+  if (hoveredIdx >= 0) {
+    var b = bubbles[hoveredIdx];
+    var hw = b.thw||b.hw, hh = b.thh||b.hh;
+    var cy = e.clientY + window.scrollY;
+    if (Math.abs(b.x - e.clientX) < hw && Math.abs(b.y - cy) < hh) {
+      openLB(hoveredIdx); return;
+    }
+  }
+  hoveredIdx = -1;
+  hoveredLocked = false;
 });
 
 // Lightbox
@@ -761,12 +778,14 @@ document.addEventListener('keydown', function(e) {
 // Form
 function submitForm(e) {
   e.preventDefault();
-  var btn = e.target.querySelector('.form-submit');
-  btn.textContent = 'Envoi…'; btn.disabled = true;
+  var btn = e.currentTarget.querySelector('.form-submit');
+  var msg = document.getElementById('form-msg');
+  btn.disabled = true; btn.style.opacity = '0.5';
   setTimeout(function() {
-    document.getElementById('form-msg').classList.add('show');
-    btn.textContent = 'Envoyé';
-  }, 900);
+    msg.classList.add('show');
+    btn.disabled = false; btn.style.opacity = '';
+    e.currentTarget.reset();
+  }, 800);
 }
 </script>
 </body>
