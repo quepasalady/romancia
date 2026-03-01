@@ -30,29 +30,32 @@ body:not(.portfolio-mode) #cur{
 }
 
 /* ── LOGO — animated element ── */
+/* ── LOGO ── */
 #logo{
   position:fixed;
   z-index:300;
-  font-size:clamp(52px,10vw,128px);
   font-weight:500;
-  letter-spacing:-.09em;
   text-transform:uppercase;
   color:#fff;
   -webkit-font-smoothing:antialiased;
   white-space:nowrap;
-  /* starts centered */
-  top:50%; left:50%;
-  transform:translate(-50%,-50%);
-  opacity:0;
-  animation:fadeIn 1.2s ease-in-out 0.2s forwards;
-  transition:
-    top .9s cubic-bezier(0.76,0,0.24,1),
-    left .9s cubic-bezier(0.76,0,0.24,1),
-    transform .9s cubic-bezier(0.76,0,0.24,1),
-    font-size .9s cubic-bezier(0.76,0,0.24,1),
-    letter-spacing .9s ease;
   cursor:none;
   pointer-events:none;
+  /* Centre de l'écran au départ */
+  top:50%; left:50%;
+  transform:translate(-50%,-50%);
+  font-size:clamp(52px,10vw,128px);
+  letter-spacing:-.09em;
+  opacity:0;
+  animation:fadeIn 1.2s ease-in-out 0.2s forwards;
+  /* Transition vers haut-gauche */
+  transition:
+    top    .9s cubic-bezier(0.76,0,0.24,1),
+    left   .9s cubic-bezier(0.76,0,0.24,1),
+    transform .9s cubic-bezier(0.76,0,0.24,1),
+    font-size .9s cubic-bezier(0.76,0,0.24,1),
+    letter-spacing .9s ease,
+    opacity .4s ease;
 }
 #logo.moved{
   top:32px;
@@ -60,7 +63,15 @@ body:not(.portfolio-mode) #cur{
   transform:translate(0,0);
   font-size:19px;
   letter-spacing:.12em;
+  opacity:1;
 }
+#logo-overlay{
+  position:fixed;inset:0;z-index:299;
+  background:transparent;
+  opacity:0;pointer-events:none;
+}
+#logo-overlay.show{opacity:1;}
+#logo-overlay.hide{opacity:0;transition:opacity .6s ease;}
 
 /* ── PLAY BUTTON ── */
 #play-btn{
@@ -248,7 +259,7 @@ body.lb-open #lb-close{ opacity:1; }
 #lb-cursor {
   position: fixed;
   pointer-events: none;
-  z-index: 9999;
+  z-index: 2147483647;
   transform: translate(-50%, -50%);
   transition: opacity 0.12s ease;
   opacity: 0;
@@ -313,21 +324,30 @@ body.lb-open #lb-close{ opacity:1; }
   position:fixed;inset:0;z-index:1000;
   background:#000;
   display:none;flex-direction:column;
+  align-items:center;justify-content:center;
   opacity:0;transition:opacity .3s ease;
 }
 #mob-lb.open{display:flex;opacity:1;}
+/* Zone centrale cliquable pour fermer (fond noir) */
+#mob-lb-inner{
+  width:100%;
+  display:flex;flex-direction:column;
+  align-items:center;
+}
 #mob-lb-video{
   width:100%;
   background:#000;
   display:block;
   flex-shrink:0;
+  /* hauteur calculée par JS selon ratio natif */
 }
 #mob-lb-info{
-  padding:22px 20px 10px;
-  display:flex;flex-direction:column;gap:5px;
+  width:100%;
+  padding:18px 20px 4px;
+  display:flex;flex-direction:column;gap:4px;
 }
 #mob-lb-title{
-  font-size:20px;font-weight:700;letter-spacing:.04em;
+  font-size:18px;font-weight:700;letter-spacing:.04em;
   text-transform:uppercase;color:rgba(255,255,255,0.92);
   -webkit-font-smoothing:antialiased;
 }
@@ -336,10 +356,17 @@ body.lb-open #lb-close{ opacity:1; }
   text-transform:uppercase;color:rgba(255,255,255,0.35);
   -webkit-font-smoothing:antialiased;
 }
+/* Séparateur */
+#mob-lb-sep{
+  width:calc(100% - 40px);height:1px;
+  background:rgba(255,255,255,0.07);
+  margin:12px 20px 0;
+}
 /* Barre contrôles mobile */
 #mob-lb-bar{
-  padding:14px 20px 10px;
-  display:flex;flex-direction:column;gap:10px;
+  width:100%;
+  padding:10px 20px 12px;
+  display:flex;flex-direction:column;gap:8px;
   background:#000;
 }
 #mob-lb-progress-wrap{
@@ -369,14 +396,16 @@ body.lb-open #lb-close{ opacity:1; }
   background:none;border:none;cursor:pointer;padding:0;
   display:flex;align-items:center;opacity:0.5;
 }
-/* Bouton X mobile */
+/* Bouton X mobile — haut droite écran */
 #mob-lb-close{
-  position:absolute;top:16px;right:16px;z-index:10;
+  position:fixed;top:16px;right:16px;z-index:1010;
   width:30px;height:30px;border-radius:50%;
   background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.15);
-  display:flex;align-items:center;justify-content:center;
+  display:none;align-items:center;justify-content:center;
   cursor:pointer;
 }
+#mob-lb.open ~ #mob-lb-close,
+#mob-lb.open + #mob-lb-close{ display:flex; }
 
 @media(max-width:768px){
   #play-btn{cursor:pointer !important;}
@@ -442,6 +471,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </div>
 
 <!-- Logo — transitions from center to header -->
+<div id="logo-overlay"></div>
 <div id="logo">ROMANCIA</div>
 
 <!-- Play button (intro only) -->
@@ -458,38 +488,41 @@ document.addEventListener('DOMContentLoaded', function() {
 <div id="mobile-list"></div>
 
 <!-- Lightbox Mobile -->
-<div id="mob-lb">
-  <div id="mob-lb-close" onclick="closeMobLB()">
-    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg>
-  </div>
-  <video id="mob-lb-video" playsinline controls="false"></video>
-  <div id="mob-lb-info">
-    <div id="mob-lb-title"></div>
-    <div id="mob-lb-meta"></div>
-  </div>
-  <div id="mob-lb-bar">
-    <div id="mob-lb-progress-wrap">
-      <div id="mob-lb-progress-track">
-        <div id="mob-lb-progress"></div>
+<div id="mob-lb" onclick="mobLBBgClick(event)">
+  <div id="mob-lb-inner">
+    <video id="mob-lb-video" playsinline></video>
+    <div id="mob-lb-info">
+      <div id="mob-lb-title"></div>
+      <div id="mob-lb-meta"></div>
+    </div>
+    <div id="mob-lb-sep"></div>
+    <div id="mob-lb-bar">
+      <div id="mob-lb-progress-wrap">
+        <div id="mob-lb-progress-track">
+          <div id="mob-lb-progress"></div>
+        </div>
+      </div>
+      <div id="mob-lb-controls">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <button id="mob-lb-playpause" onclick="mobTogglePlay()">
+            <svg id="mob-pp-icon" width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+          </button>
+          <span id="mob-lb-time">0:00 / 0:00</span>
+        </div>
+        <div id="mob-lb-right">
+          <button id="mob-lb-vol" onclick="mobToggleMute()">
+            <svg id="mob-vol-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
+          </button>
+          <button id="mob-lb-fullscreen" onclick="mobFullscreen()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
+          </button>
+        </div>
       </div>
     </div>
-    <div id="mob-lb-controls">
-      <div style="display:flex;align-items:center;gap:14px;">
-        <button id="mob-lb-playpause" onclick="mobTogglePlay()">
-          <svg id="mob-pp-icon" width="20" height="20" viewBox="0 0 24 24" fill="white"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
-        </button>
-        <span id="mob-lb-time">0:00 / 0:00</span>
-      </div>
-      <div id="mob-lb-right">
-        <button id="mob-lb-vol" onclick="mobToggleMute()">
-          <svg id="mob-vol-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 010 14.14M15.54 8.46a5 5 0 010 7.07"/></svg>
-        </button>
-        <button id="mob-lb-fullscreen" onclick="mobFullscreen()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M8 3H5a2 2 0 00-2 2v3m18 0V5a2 2 0 00-2-2h-3m0 18h3a2 2 0 002-2v-3M3 16v3a2 2 0 002 2h3"/></svg>
-        </button>
-      </div>
-    </div>
   </div>
+</div>
+<div id="mob-lb-close" onclick="closeMobLB()">
+  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2"><path d="M18 6L6 18M6 6l12 12"/></svg>
 </div>
 
 <!-- Tooltip -->
@@ -682,33 +715,29 @@ function enterPortfolio() {
   // Charger les vidéos maintenant qu'on entre dans le portfolio
   loadAllVideos();
 
-  // 1. Cacher le bouton BIENVENUE définitivement
+  // 1. Cacher BIENVENUE
   playBtn.classList.add('hidden');
   playBtn.style.display = 'none';
 
-  // 2. Move logo to top-left — stopper l'animation fadeIn d'abord
-  setTimeout(function() {
-    var logo = document.getElementById('logo');
-    // Figer l'opacité actuelle et couper l'animation pour que la transition CSS prenne
-    logo.style.opacity = '1';
-    logo.style.animation = 'none';
-    // Forcer un reflow pour que le navigateur applique ces styles avant la transition
-    void logo.offsetHeight;
-    logo.classList.add('moved');
-  }, 100);
+  var logo = document.getElementById('logo');
 
-  // 3. While logo travels, fade in bubbles + nav + footer
+  // Figer l'opacité actuelle (couper animation fadeIn si en cours)
+  var computedOpacity = window.getComputedStyle(logo).opacity;
+  logo.style.opacity   = computedOpacity;
+  logo.style.animation = 'none';
+  void logo.offsetHeight; // force reflow
+
+  // Lancer la transition vers haut-gauche
+  logo.classList.add('moved');
+
+  // Révéler le portfolio pendant que le logo voyage
   setTimeout(function() {
-    // Start with dot cursor; triangle appears on rect hover
     document.body.classList.add('portfolio-mode');
-    // Show canvas content
     bubblesVisible = true;
-    // Show nav & footer
     document.getElementById('nav').classList.add('show');
     document.getElementById('footer').classList.add('show');
-    // Vérif initiale position scroll
     checkFooterBottom();
-  }, 500);
+  }, 300);
 }
 
 // Footer visible seulement tout en bas
@@ -1300,18 +1329,27 @@ function openMobLB(idx) {
   lbv.onplay  = function() { mobUpdatePP(true); };
   lbv.onpause = function() { mobUpdatePP(false); };
 
-  var lb = document.getElementById('mob-lb');
+  var lb    = document.getElementById('mob-lb');
+  var close = document.getElementById('mob-lb-close');
   lb.style.display = 'flex';
+  if (close) close.style.display = 'flex';
   requestAnimationFrame(function() { lb.classList.add('open'); });
   document.body.style.overflow = 'hidden';
   mobLBOpen = true;
 }
 
+function mobLBBgClick(e) {
+  // Fermer si clic sur le fond noir (pas sur le contenu inner)
+  if (e.target === document.getElementById('mob-lb')) closeMobLB();
+}
+
 function closeMobLB() {
   var lbv = document.getElementById('mob-lb-video');
   lbv.pause(); lbv.src = '';
-  var lb = document.getElementById('mob-lb');
+  var lb    = document.getElementById('mob-lb');
+  var close = document.getElementById('mob-lb-close');
   lb.classList.remove('open');
+  if (close) close.style.display = 'none';
   setTimeout(function() { lb.style.display = 'none'; }, 300);
   document.body.style.overflow = '';
   document.getElementById('mob-lb-progress').style.width = '0%';
